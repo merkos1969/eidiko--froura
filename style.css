@@ -87,19 +87,12 @@ body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,
 }
 
 
-.panel-notes{
-  margin-top:20px;
+.calendar-night{
+  background:#bfc6cf !important;
+  color:#000 !important;
 }
 
-.notesBox{
-  background:#f3f6fb;
-  border-left:4px solid #2c5aa0;
-  padding:14px;
-  font-size:14px;
-  line-height:1.5;
-}
-
-.notesBox ul{
-  margin-top:6px;
-  margin-left:18px;
+.calendar-fiveday{
+  background:#ffd966 !important;
+  color:#000 !important;
 }

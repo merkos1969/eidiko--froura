@@ -240,6 +240,20 @@ $('netTotal').textContent = fmt(gross - deds);
 
     const cell = document.createElement('div');
     cell.className = 'day' + ((dow===0 || dow===6) ? ' weekend' : '') + (out ? ' out' : '');
+
+    const isNight = (val === 'N' || val === 'PN');
+    const isDuty = (val === 'P' || val === 'A' || val === 'N' || val === 'PN');
+    let isFiveDay = false;
+
+    if (dow === 5 && isNight) isFiveDay = true;        // Παρασκευή νύχτα
+    if ((dow === 6 || dow === 0) && isDuty) isFiveDay = true; // Σάββατο / Κυριακή
+
+    if (isNight) cell.classList.add('calendar-night');
+    if (isFiveDay) {
+      cell.classList.remove('calendar-night'); // το πενθήμερο υπερισχύει
+      cell.classList.add('calendar-fiveday');
+    }
+
     cell.innerHTML = '<div class="num">' + date.getDate() + '</div>';
 
     const mark = document.createElement('div');
