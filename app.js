@@ -111,7 +111,7 @@
     $('dutyPay').textContent = fmt(duty);
     $('childPay').textContent = fmt(child);
 
-    const fiveDed = fiveGross * 0.04;
+    const fiveDed = fiveGross * 0.02;
     const fiveTax = (fiveGross - fiveDed) * 0.20;
     const fiveNet = fiveGross - fiveDed - fiveTax;
 
