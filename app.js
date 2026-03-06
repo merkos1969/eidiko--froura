@@ -97,7 +97,8 @@
     const child = Number(rec.child || 0);
 
     const border = $('borderYes').value === 'yes' ? 130 : 0;
-    const personal = Number($('personalDiff').value || 0);
+    const personalRaw = $('personalDiff').value;
+    const personal = personalRaw === '' ? 0 : Number(personalRaw);
 
     const fiveCount = Number($('fiveDaysCount').value || 0);
     const fiveRate = Number($('fiveDaysRate').value || 46);
@@ -111,7 +112,7 @@
     $('dutyPay').textContent = fmt(duty);
     $('childPay').textContent = fmt(child);
 
-    const fiveDed = fiveGross * 0.02;
+    const fiveDed = fiveGross * 0.04;
     const fiveTax = (fiveGross - fiveDed) * 0.20;
     const fiveNet = fiveGross - fiveDed - fiveTax;
 
@@ -289,33 +290,26 @@ $('netTotal').textContent = fmt(gross - deds);
   function updateCountsFromCalendar(){
     let nights = 0;
     let fives = 0;
+    for (const [key, val] of Object.entries(shifts)){
+      const d = fromIso(key);
 
-    // Μέτρα μόνο τον τρέχοντα εμφανιζόμενο μήνα
-    const dim = new Date(calYear, calMonth, 0).getDate();
+      // Μέτρα μόνο τον εμφανιζόμενο μήνα / έτος
+      if (d.getFullYear() !== calYear || (d.getMonth() + 1) !== calMonth) continue;
 
-    for (let d = 1; d <= dim; d++){
-      const key = iso(calYear, calMonth, d);
-      const val = shifts[key];
-      if (!val) continue;
-
-      const date = new Date(calYear, calMonth - 1, d);
-      const day = date.getDay(); // 0 Κυρ ... 6 Σαβ
-
+      const day = d.getDay(); // 0 Sun ... 6 Sat
       const hasNight = (val === 'N' || val === 'PN');
       const hasWeekendDuty = (val === 'P' || val === 'A' || val === 'N' || val === 'PN');
 
-      // Νυχτερινά: μόνο Δευτέρα έως Πέμπτη
+      // Νυχτερινά μόνο Δευ-Πεμ
       if (day >= 1 && day <= 4 && hasNight){
         nights += 1;
       }
-      // Πενθήμερα: Παρασκευή νύχτα, Σάββατο όλες οι βάρδιες, Κυριακή όλες οι βάρδιες
-      else if (day === 5 && hasNight){
-        fives += 1;
-      } else if ((day === 6 || day === 0) && hasWeekendDuty){
+
+      // Πενθήμερα: Παρασκευή νύχτα + Σαβ/Κυρ όλες οι υπηρεσίες
+      if ((day === 5 && hasNight) || ((day === 6 || day === 0) && hasWeekendDuty)){
         fives += 1;
       }
     }
-
     $('sumNights').textContent = String(nights);
     $('sumFivedays').textContent = String(fives);
   }
