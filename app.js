@@ -1,5 +1,9 @@
 const PAY_TABLE = window.PAY_TABLE;
 const el = (id)=>document.getElementById(id);
+const has = (id)=>!!el(id);
+function setText(id, value){ const n=el(id); if(n) n.textContent = value; }
+function setValue(id, value){ const n=el(id); if(n) n.value = value; }
+function setChecked(id, value){ const n=el(id); if(n) n.checked = !!value; }
 const fmt = (n)=>{
   const v = Number(n||0);
   return v.toLocaleString('el-GR', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -111,13 +115,13 @@ function compute(){
 
   // Years/step
   const yrs = yearsBetween(hireDate, calcDate);
-  el('years').value = (yrs==null) ? '-' : yrs.toFixed(2).replace('.', ',');
+  setValue('years', (yrs==null) ? '-' : yrs.toFixed(2).replace('.', ','));
 
   const step = (yrs==null) ? null : stepForYears(yrs);
-  el('step').value = step ? String(step) : '-';
+  setValue('step', step ? String(step) : '-');
 
   const cat = categoryLabel(family, kidsRaw);
-  el('tableCategory').textContent = cat;
+  setText('tableCategory', cat);
 
   // Table values
   let base=0, duty=0, child=0, tableTotal=0, rangeLabel='-';
@@ -132,11 +136,11 @@ function compute(){
       tableTotal = rec.total;
     }
   }
-  el('rangeLabel').textContent = rangeLabel;
-  el('basePay').textContent = fmt(base);
-  el('dutyPay').textContent = fmt(duty);
-  el('childPay').textContent = fmt(child);
-  el('tableTotal').textContent = fmt(tableTotal);
+  setText('rangeLabel', rangeLabel);
+  setText('basePay', fmt(base));
+  setText('dutyPay', fmt(duty));
+  setText('childPay', fmt(child));
+  setText('tableTotal', fmt(tableTotal));
 
   // Extras
   const border = (el('borderYes')?.value === 'yes') ? 130 : 0;
@@ -146,7 +150,7 @@ function compute(){
 
   const grossRegular = tableTotal + border + personalDiff;
   const gross = grossRegular + fiveDaysGross + nightGross;
-  el('grossTotal').textContent = fmt(gross);
+  setText('grossTotal', fmt(gross));
 
   // Rates (defaults set in HTML)
   const rEfka = readNum('rEfka');            // 6,67%
@@ -221,18 +225,18 @@ function compute(){
   }
 
   // Render
-  el('taxAmt').textContent = fmt(taxAmt);
-  el('healthAmt').textContent = fmt(healthAmt);
-  el('efkaAmt').textContent = fmt(efkaAmt);
-  el('solidarityAmt').textContent = fmt(solidarityAmt + fiveDaysUnemp + nightUnemp); // μαζί και στα extras
-  el('mtpyAmt').textContent = fmt(mtpyAmt + nightMtpyExtra); // μαζί και MTPY extras (2% νύχτες)
-  el('healthBranchAmt').textContent = fmt(0); // δεν χρησιμοποιείται εδώ
-  el('teayapAmt').textContent = fmt(teadyAmt);
-  el('tpyapAmt').textContent = fmt(tpdyAmt);
-  el('eteaepAmt').textContent = fmt(eteaepAmt);
-  el('specialAcctAmt').textContent = fmt(specialAcctAmt);
-  el('fiveYearsAmt').textContent = fmt(fiveYearsAmt);
-  el('otherAmt').textContent = fmt(otherAmt);
+  setText('taxAmt', fmt(taxAmt));
+  setText('healthAmt', fmt(healthAmt));
+  setText('efkaAmt', fmt(efkaAmt));
+  setText('solidarityAmt', fmt(solidarityAmt + fiveDaysUnemp + nightUnemp); // μαζί και στα extras
+  setText('mtpyAmt', fmt(mtpyAmt + nightMtpyExtra); // μαζί και MTPY extras (2% νύχτες)
+  setText('healthBranchAmt', fmt(0); // δεν χρησιμοποιείται εδώ
+  setText('teayapAmt', fmt(teadyAmt);
+  setText('tpyapAmt', fmt(tpdyAmt);
+  setText('eteaepAmt', fmt(eteaepAmt);
+  setText('specialAcctAmt', fmt(specialAcctAmt);
+  setText('fiveYearsAmt', fmt(fiveYearsAmt));
+  setText('otherAmt', fmt(otherAmt));
 
   const deds =
     taxAmt +
@@ -247,8 +251,58 @@ function compute(){
     fiveYearsAmt +
     otherAmt;
 
-  el('dedTotal').textContent = fmt(deds);
-  el('netTotal').textContent = fmt(gross - deds);
+  setText('dedTotal', fmt(deds));
+  setText('netTotal', fmt(gross - deds));
+}
+
+
+/* =========================
+   Persistence (localStorage)
+   ========================= */
+const LS_KEY = 'poyef_efoura_state_v16';
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  }catch(_){ return null; }
+}
+
+function saveState(partial){
+  try{
+    const cur = loadState() || {};
+    const next = Object.assign({}, cur, partial);
+    localStorage.setItem(LS_KEY, JSON.stringify(next));
+  }catch(_){}
+}
+
+function readInputsSnapshot(){
+  const ids = [
+    'hireDate','calcDate','family','kids','insurance','borderYes',
+    'personalDiff','fiveDaysCount','fiveDaysRate','nightCount','nightRate',
+    'baseMode','taxMode','manualTax','taxMonths',
+    'fiveYearsOn','fiveYearsAmount','otherFixed',
+    'rEfka','rHealth','rSolidarity','rTeayap','rTpyap','rEteaep','rSpecial'
+  ];
+  const snap = {};
+  ids.forEach(id=>{
+    const n = el(id);
+    if (!n) return;
+    if (n.type === 'checkbox') snap[id] = n.checked;
+    else snap[id] = n.value;
+  });
+  return snap;
+}
+
+function applyInputsSnapshot(snap){
+  if (!snap) return;
+  Object.keys(snap).forEach(id=>{
+    const n = el(id);
+    if (!n) return;
+    if (n.type === 'checkbox') n.checked = !!snap[id];
+    else n.value = snap[id];
+  });
 }
 
 function initDates(){
@@ -256,8 +310,10 @@ function initDates(){
   const yyyy = today.getFullYear();
   const mm = String(today.getMonth()+1).padStart(2,'0');
   const dd = String(today.getDate()).padStart(2,'0');
-  el('calcDate').value = `${yyyy}-${mm}-${dd}`;
+  const cd = el('calcDate');
+  if (cd && !cd.value) cd.value = `${yyyy}-${mm}-${dd}`;
 }
+
 
 function hook(){
   const ids = [
@@ -269,7 +325,7 @@ function hook(){
   ];
   ids.forEach(id=>{
     const node = el(id);
-    if (node) node.addEventListener('input', compute);
+    if (node) node.addEventListener('input', ()=>{ compute(); saveState({inputs: readInputsSnapshot()}); });
   });
 
   const btn = el('toggleSettings');
@@ -279,9 +335,23 @@ function hook(){
   }
 }
 
+
+// Load persisted state (inputs + calendar)
+const persisted = loadState();
+if (persisted){
+  applyInputsSnapshot(persisted.inputs);
+}
+if (persisted && persisted.calendar){
+  loadCalendar(persisted.calendar);
+}
+if (persisted && persisted.calStartMonth && el('calStartMonth')) el('calStartMonth').value = persisted.calStartMonth;
+if (persisted && persisted.calView && el('calView')) el('calView').value = persisted.calView;
+if (persisted && persisted.cycleLen && el('cycleLen')) el('cycleLen').value = persisted.cycleLen;
+
 initDates();
 hook();
 compute();
+saveState({inputs: readInputsSnapshot()});
 
 
 /* =========================
@@ -308,6 +378,23 @@ const calState = {
   map: new Map(),
   selectedIso: null,
 };
+
+
+function serializeCalendar(){
+  const obj = {};
+  for (const [iso, v] of calState.map.entries()){
+    obj[iso] = v;
+  }
+  return obj;
+}
+function loadCalendar(obj){
+  calState.map = new Map();
+  if (!obj) return;
+  for (const iso of Object.keys(obj)){
+    calState.map.set(iso, obj[iso]);
+  }
+}
+
 
 function setShiftForDay(iso, shift){
   const cur = calState.map.get(iso) || {a:null, b:null};
@@ -485,16 +572,16 @@ function computeCountsForVisibleRange(){
 
 function updateCalendarSummary(){
   const {nights, fivedays, breakdown} = computeCountsForVisibleRange();
-  if (el('sumNights')) el('sumNights').textContent = String(nights);
-  if (el('sumFivedays')) el('sumFivedays').textContent = String(fivedays);
+  if (el('sumNights')) setText('sumNights', String(nights));
+  if (el('sumFivedays')) setText('sumFivedays', String(fivedays));
 
   if (el('sumBreakdown')){
-    el('sumBreakdown').textContent = `ΠΑ(Ν): ${breakdown.friNight} • ΣΑ(Π/Α/Ν): ${breakdown.satAny} • ΚΥ(Π/Α/Ν): ${breakdown.sunAny}`;
+    setText('sumBreakdown', `ΠΑ(Ν): ${breakdown.friNight} • ΣΑ(Π/Α/Ν): ${breakdown.satAny} • ΚΥ(Π/Α/Ν): ${breakdown.sunAny}`);
   }
 
   // push to payroll inputs
-  if (el('nightCount')) el('nightCount').value = String(nights);
-  if (el('fiveDaysCount')) el('fiveDaysCount').value = String(fivedays);
+  if (el('nightCount')) setValue('nightCount', String(nights));
+  if (el('fiveDaysCount')) setValue('fiveDaysCount', String(fivedays));
   // recompute payroll
   if (typeof compute === 'function') compute();
 }
@@ -538,6 +625,7 @@ function applyCycle(){
     idx += 1;
   }
   renderCalendar();
+  saveState({calendar: serializeCalendar(), calStartMonth: el('calStartMonth')?.value, calView: el('calView')?.value, cycleLen: el('cycleLen')?.value});
 }
 
 function clearCalendar(){
@@ -552,6 +640,7 @@ function clearCalendar(){
     calState.map.delete(isoDate(d));
   }
   renderCalendar();
+  saveState({calendar: serializeCalendar(), calStartMonth: el('calStartMonth')?.value, calView: el('calView')?.value, cycleLen: el('cycleLen')?.value});
 }
 
 function clearMonthOnly(){
@@ -563,6 +652,7 @@ function clearMonthOnly(){
     calState.map.delete(isoDate(d));
   }
   renderCalendar();
+  saveState({calendar: serializeCalendar(), calStartMonth: el('calStartMonth')?.value, calView: el('calView')?.value, cycleLen: el('cycleLen')?.value});
 }
 
 
@@ -571,7 +661,7 @@ function initCalendar(){
   const cd = el('calcDate')?.value;
   const today = cd ? new Date(cd) : new Date();
   const ym = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
-  if (el('calStartMonth')) el('calStartMonth').value = ym;
+  if (el('calStartMonth')) setValue('calStartMonth', ym);
 
   // picker buttons
   document.querySelectorAll('.pbtn').forEach(btn=>{
@@ -582,6 +672,7 @@ function initCalendar(){
       setShiftForDay(iso, shift);
       closePicker();
       renderCalendar();
+  saveState({calendar: serializeCalendar(), calStartMonth: el('calStartMonth')?.value, calView: el('calView')?.value, cycleLen: el('cycleLen')?.value});
     });
   });
   el('pickerClose')?.addEventListener('click', closePicker);
@@ -597,6 +688,7 @@ function initCalendar(){
   el('clearMonth')?.addEventListener('click', clearMonthOnly);
 
   renderCalendar();
+  saveState({calendar: serializeCalendar(), calStartMonth: el('calStartMonth')?.value, calView: el('calView')?.value, cycleLen: el('cycleLen')?.value});
 }
 
 // Start calendar after existing initDates/hook/compute have run
