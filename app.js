@@ -132,30 +132,67 @@
     const gross = base + duty + child + border + personal + fiveGross + nightGross;
     $('grossTotal').textContent = fmt(gross);
 
-    const regular = base + duty + child + border + personal;
-    const health = regular * (Number($('rHealth').value || 2.05) / 100);
-    const efka = regular * (Number($('rEfka').value || 6.67) / 100);
-    const fiveYears = $('fiveYearsOn').value === 'yes' ? Number($('fiveYearsAmount').value || 39.87) : 0;
-    const other = Number($('otherFixed').value || 0);
+    
+const regular = base + duty + child + border + personal;
 
-    const monthlyTaxable = Math.max(0, gross - health - efka - fiveYears - other);
-    const annualTaxable = monthlyTaxable * 12;
-    const kids = Number($('kids').value || 0);
-    const taxInfo = progressiveTax(annualTaxable, kids);
+const insuranceType = $('insurance').value;
 
-    $('annualTaxable').value = fmt(annualTaxable);
-    $('taxCreditOut').value = fmt(taxInfo.credit);
-    $('taxAmt').textContent = fmt(taxInfo.finalTax / 12);
-    $('taxMonthlyOut').value = fmt(taxInfo.finalTax / 12);
+const tpdy = regular * 0.04;
 
-    $('healthAmt').textContent = fmt(health);
-    $('efkaAmt').textContent = fmt(efka);
-    $('fiveYearsDed').textContent = fmt(fiveYears);
-    $('otherAmt').textContent = fmt(other);
+let mtpy = 0;
+if(insuranceType === 'post93'){
+    mtpy = regular * 0.045;
+}else{
+    mtpy = base * 0.045 + (duty + child + border + personal) * 0.01;
+}
 
-    const deds = health + efka + fiveYears + other + (taxInfo.finalTax / 12) + fiveDed + fiveTax + nightDed + nightTax;
-    $('dedTotal').textContent = fmt(deds);
-    $('netTotal').textContent = fmt(gross - deds);
+const teady = regular * 0.03;
+const health = regular * 0.0205;
+const efka = regular * 0.0667;
+const unemp = regular * 0.02;
+
+const fiveYears = $('fiveYearsOn').value === 'yes' ? Number($('fiveYearsAmount').value || 39.87) : 0;
+const other = Number($('otherFixed').value || 0);
+
+const monthlyTaxable = Math.max(0, gross - tpdy - mtpy - teady - health - efka - unemp - fiveYears - other);
+
+const annualTaxable = monthlyTaxable * 12;
+const kids = Number($('kids').value || 0);
+const taxInfo = progressiveTax(annualTaxable, kids);
+
+$('annualTaxable').value = fmt(annualTaxable);
+$('taxCreditOut').value = fmt(taxInfo.credit);
+
+const monthlyTax = taxInfo.finalTax / 12;
+
+$('taxAmt').textContent = fmt(monthlyTax);
+$('taxMonthlyOut').value = fmt(monthlyTax);
+
+const tpdyAmt = tpdy;
+const mtpyAmt = mtpy;
+const teadyAmt = teady;
+const healthAmt = health;
+const efkaAmt = efka;
+const unempAmt = unemp;
+
+if($('tpdyAmt')) $('tpdyAmt').textContent = fmt(tpdyAmt);
+if($('mtpyAmt')) $('mtpyAmt').textContent = fmt(mtpyAmt);
+if($('teadyAmt')) $('teadyAmt').textContent = fmt(teadyAmt);
+if($('healthAmt')) $('healthAmt').textContent = fmt(healthAmt);
+if($('efkaAmt')) $('efkaAmt').textContent = fmt(efkaAmt);
+if($('unempAmt')) $('unempAmt').textContent = fmt(unempAmt);
+
+$('fiveYearsDed').textContent = fmt(fiveYears);
+$('otherAmt').textContent = fmt(other);
+
+const pctTotal = 4 + (insuranceType==='post93'?4.5: ( (base*4.5)/(regular||1) + ((duty+child+border+personal)*1)/(regular||1) )) + 3 + 2.05 + 6.67 + 2;
+if($('dedPctOut')) $('dedPctOut').textContent = fmt(pctTotal);
+
+const deds = tpdy + mtpy + teady + health + efka + unemp + fiveYears + other + monthlyTax + fiveDed + fiveTax + nightDed + nightTax;
+
+$('dedTotal').textContent = fmt(deds);
+$('netTotal').textContent = fmt(gross - deds);
+
 
     saveState();
   }
