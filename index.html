@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Μισθολόγιο Εξωτερικής Φρούρησης</title>
-  <link rel="stylesheet" href="./style.css?v=25">
+  <link rel="stylesheet" href="./style.css?v=30">
 </head>
 <body>
   <div class="page">
@@ -111,7 +111,7 @@
         </div>
         <div class="miniCalc">
           Μικτό: <b><span id="fiveGross">0,00</span> €</b><br>
-          Κρατήσεις: <b><span id="fiveDed">0,00</span> €</b><br>
+          ΜΤΠΥ 2% + Ανεργία 2%: <b><span id="fiveDed">0,00</span> €</b><br>
           Φόρος 20%: <b><span id="fiveTax">0,00</span> €</b><br>
           Καθαρό: <b><span id="fiveNet">0,00</span> €</b>
         </div>
@@ -128,7 +128,7 @@
         </div>
         <div class="miniCalc">
           Μικτό: <b><span id="nightGross">0,00</span> €</b><br>
-          Κρατήσεις: <b><span id="nightDed">0,00</span> €</b><br>
+          ΜΤΠΥ 2% + Ανεργία 2%: <b><span id="nightDed">0,00</span> €</b><br>
           Φόρος 20%: <b><span id="nightTax">0,00</span> €</b><br>
           Καθαρό: <b><span id="nightNet">0,00</span> €</b>
         </div>
@@ -170,9 +170,14 @@
             <input id="taxMonthlyOut" type="text" readonly value="0,00">
           </div>
         </div>
+        <div class="miniCalc">ΜΤΠΥ: μετά το 1993 = 4,5% σε βασικό + επιδόματα. Πριν το 1993 = 4,5% στον βασικό + 1% στα επιδόματα.</div>
 
-        <div class="line"><span>Υγειονομική</span><b><span id="healthAmt">0,00</span> €</b></div>
-        <div class="line"><span>ΕΦΚΑ σύνταξη</span><b><span id="efkaAmt">0,00</span> €</b></div>
+        <div class="line"><span>ΤΠΔΥ (4%)</span><b><span id="tpdyAmt">0,00</span> €</b></div>
+        <div class="line"><span>ΜΤΠΥ</span><b><span id="mtpyAmt">0,00</span> €</b></div>
+        <div class="line"><span>ΤΕΑΔΥ (3%)</span><b><span id="teadyAmt">0,00</span> €</b></div>
+        <div class="line"><span>Υγειονομική (2,05%)</span><b><span id="healthAmt">0,00</span> €</b></div>
+        <div class="line"><span>ΕΦΚΑ σύνταξη (6,67%)</span><b><span id="efkaAmt">0,00</span> €</b></div>
+        <div class="line"><span>Ανεργία (2%)</span><b><span id="unempAmt">0,00</span> €</b></div>
         <div class="line"><span>Αναγνώριση 5ετίας</span><b><span id="fiveYearsDed">0,00</span> €</b></div>
         <div class="line"><span>Λοιπές κρατήσεις</span><b><span id="otherAmt">0,00</span> €</b></div>
         <div class="line"><span>Φόρος κύριου μισθού</span><b><span id="taxAmt">0,00</span> €</b></div>
@@ -239,7 +244,7 @@
     </footer>
   </div>
 
-  <script src="./data.js?v=25"></script>
-  <script src="./app.js?v=25"></script>
+  <script src="./data.js?v=30"></script>
+  <script src="./app.js?v=30"></script>
 </body>
 </html>
