@@ -87,31 +87,12 @@ body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,
 }
 
 
-.printTitle{
-  display:none;
-  text-align:center;
-  font-weight:900;
-  font-size:20px;
-  margin:10px 0 14px 0;
+.calendar-night{
+  background:#bfc6cf !important;
+  color:#000 !important;
 }
 
-@media print{
-
-  .printTitle{
-    display:block;
-  }
-
-  .panel-cal,
-  .copyRow,
-  .shiftRow,
-  .toolbar,
-  #resetStorageBtn{
-    display:none !important;
-  }
-
-  body{
-    zoom:0.9;
-    background:#fff;
-  }
-
+.calendar-fiveday{
+  background:#ffd966 !important;
+  color:#000 !important;
 }
