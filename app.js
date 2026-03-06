@@ -133,21 +133,17 @@
     $('grossTotal').textContent = fmt(gross);
 
     
-
 const regular = base + duty + child + border + personal;
 
 const insuranceType = $('insurance').value;
 
-// βασικές κρατήσεις
 const tpdy = regular * 0.04;
 
-// ΜΤΠΥ: μετά το 1993 = 4,5% σε βασικό + επιδόματα
-// πριν το 1993 = 4,5% στον βασικό + 1% στα επιδόματα
 let mtpy = 0;
-if (insuranceType === 'post93') {
-  mtpy = regular * 0.045;
-} else {
-  mtpy = base * 0.045 + (duty + child + border + personal) * 0.01;
+if(insuranceType === 'post93'){
+    mtpy = regular * 0.045;
+}else{
+    mtpy = base * 0.045 + (duty + child + border + personal) * 0.01;
 }
 
 const teady = regular * 0.03;
@@ -159,6 +155,7 @@ const fiveYears = $('fiveYearsOn').value === 'yes' ? Number($('fiveYearsAmount')
 const other = Number($('otherFixed').value || 0);
 
 const monthlyTaxable = Math.max(0, gross - tpdy - mtpy - teady - health - efka - unemp - fiveYears - other);
+
 const annualTaxable = monthlyTaxable * 12;
 const kids = Number($('kids').value || 0);
 const taxInfo = progressiveTax(annualTaxable, kids);
@@ -167,22 +164,34 @@ $('annualTaxable').value = fmt(annualTaxable);
 $('taxCreditOut').value = fmt(taxInfo.credit);
 
 const monthlyTax = taxInfo.finalTax / 12;
+
 $('taxAmt').textContent = fmt(monthlyTax);
 $('taxMonthlyOut').value = fmt(monthlyTax);
 
-if ($('tpdyAmt')) $('tpdyAmt').textContent = fmt(tpdy);
-if ($('mtpyAmt')) $('mtpyAmt').textContent = fmt(mtpy);
-if ($('teadyAmt')) $('teadyAmt').textContent = fmt(teady);
-if ($('healthAmt')) $('healthAmt').textContent = fmt(health);
-if ($('efkaAmt')) $('efkaAmt').textContent = fmt(efka);
-if ($('unempAmt')) $('unempAmt').textContent = fmt(unemp);
+const tpdyAmt = tpdy;
+const mtpyAmt = mtpy;
+const teadyAmt = teady;
+const healthAmt = health;
+const efkaAmt = efka;
+const unempAmt = unemp;
+
+if($('tpdyAmt')) $('tpdyAmt').textContent = fmt(tpdyAmt);
+if($('mtpyAmt')) $('mtpyAmt').textContent = fmt(mtpyAmt);
+if($('teadyAmt')) $('teadyAmt').textContent = fmt(teadyAmt);
+if($('healthAmt')) $('healthAmt').textContent = fmt(healthAmt);
+if($('efkaAmt')) $('efkaAmt').textContent = fmt(efkaAmt);
+if($('unempAmt')) $('unempAmt').textContent = fmt(unempAmt);
+
 $('fiveYearsDed').textContent = fmt(fiveYears);
 $('otherAmt').textContent = fmt(other);
 
+const pctTotal = 4 + (insuranceType==='post93'?4.5: ( (base*4.5)/(regular||1) + ((duty+child+border+personal)*1)/(regular||1) )) + 3 + 2.05 + 6.67 + 2;
+if($('dedPctOut')) $('dedPctOut').textContent = fmt(pctTotal);
+
 const deds = tpdy + mtpy + teady + health + efka + unemp + fiveYears + other + monthlyTax + fiveDed + fiveTax + nightDed + nightTax;
+
 $('dedTotal').textContent = fmt(deds);
 $('netTotal').textContent = fmt(gross - deds);
-
 
 
     saveState();
@@ -231,6 +240,20 @@ $('netTotal').textContent = fmt(gross - deds);
 
     const cell = document.createElement('div');
     cell.className = 'day' + ((dow===0 || dow===6) ? ' weekend' : '') + (out ? ' out' : '');
+
+    const isNight = (val === 'N' || val === 'PN');
+    const isDuty = (val === 'P' || val === 'A' || val === 'N' || val === 'PN');
+    let isFiveDay = false;
+
+    if (dow === 5 && isNight) isFiveDay = true;        // Παρασκευή νύχτα
+    if ((dow === 6 || dow === 0) && isDuty) isFiveDay = true; // Σάββατο / Κυριακή
+
+    if (isNight) cell.classList.add('calendar-night');
+    if (isFiveDay) {
+      cell.classList.remove('calendar-night'); // το πενθήμερο υπερισχύει
+      cell.classList.add('calendar-fiveday');
+    }
+
     cell.innerHTML = '<div class="num">' + date.getDate() + '</div>';
 
     const mark = document.createElement('div');
@@ -348,6 +371,8 @@ $('netTotal').textContent = fmt(gross - deds);
         fiveDaysRate: $('fiveDaysRate').value,
         nightCount: $('nightCount').value,
         nightRate: $('nightRate').value,
+        rHealth: $('rHealth').value,
+        rEfka: $('rEfka').value,
         fiveYearsOn: $('fiveYearsOn').value,
         fiveYearsAmount: $('fiveYearsAmount').value,
         otherFixed: $('otherFixed').value,
@@ -377,6 +402,8 @@ $('netTotal').textContent = fmt(gross - deds);
       if (s.fiveDaysRate != null) $('fiveDaysRate').value = s.fiveDaysRate;
       if (s.nightCount != null) $('nightCount').value = s.nightCount;
       if (s.nightRate != null) $('nightRate').value = s.nightRate;
+      if (s.rHealth != null) $('rHealth').value = s.rHealth;
+      if (s.rEfka != null) $('rEfka').value = s.rEfka;
       if (s.fiveYearsOn != null) $('fiveYearsOn').value = s.fiveYearsOn;
       if (s.fiveYearsAmount != null) $('fiveYearsAmount').value = s.fiveYearsAmount;
       if (s.otherFixed != null) $('otherFixed').value = s.otherFixed;

@@ -85,3 +85,14 @@ body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,
   .page{max-width:100%}
   .panel{page-break-inside:avoid}
 }
+
+
+.calendar-night{
+  background:#bfc6cf !important;
+  color:#000 !important;
+}
+
+.calendar-fiveday{
+  background:#ffd966 !important;
+  color:#000 !important;
+}
