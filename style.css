@@ -85,3 +85,21 @@ body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,
   .page{max-width:100%}
   .panel{page-break-inside:avoid}
 }
+
+
+.panel-notes{
+  margin-top:20px;
+}
+
+.notesBox{
+  background:#f3f6fb;
+  border-left:4px solid #2c5aa0;
+  padding:14px;
+  font-size:14px;
+  line-height:1.5;
+}
+
+.notesBox ul{
+  margin-top:6px;
+  margin-left:18px;
+}

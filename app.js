@@ -97,8 +97,7 @@
     const child = Number(rec.child || 0);
 
     const border = $('borderYes').value === 'yes' ? 130 : 0;
-    const personalRaw = $('personalDiff').value;
-    const personal = personalRaw === '' ? 0 : Number(personalRaw);
+    const personal = Number($('personalDiff').value || 0);
 
     const fiveCount = Number($('fiveDaysCount').value || 0);
     const fiveRate = Number($('fiveDaysRate').value || 46);
@@ -112,7 +111,7 @@
     $('dutyPay').textContent = fmt(duty);
     $('childPay').textContent = fmt(child);
 
-    const fiveDed = fiveGross * 0.04;
+    const fiveDed = fiveGross * 0.02;
     const fiveTax = (fiveGross - fiveDed) * 0.20;
     const fiveNet = fiveGross - fiveDed - fiveTax;
 
@@ -292,20 +291,13 @@ $('netTotal').textContent = fmt(gross - deds);
     let fives = 0;
     for (const [key, val] of Object.entries(shifts)){
       const d = fromIso(key);
-
-      // Μέτρα μόνο τον εμφανιζόμενο μήνα / έτος
-      if (d.getFullYear() !== calYear || (d.getMonth() + 1) !== calMonth) continue;
-
       const day = d.getDay(); // 0 Sun ... 6 Sat
       const hasNight = (val === 'N' || val === 'PN');
       const hasWeekendDuty = (val === 'P' || val === 'A' || val === 'N' || val === 'PN');
 
-      // Νυχτερινά μόνο Δευ-Πεμ
-      if (day >= 1 && day <= 4 && hasNight){
+      if (day >= 1 && day <= 4 && hasNight){ // Mon-Thu
         nights += 1;
       }
-
-      // Πενθήμερα: Παρασκευή νύχτα + Σαβ/Κυρ όλες οι υπηρεσίες
       if ((day === 5 && hasNight) || ((day === 6 || day === 0) && hasWeekendDuty)){
         fives += 1;
       }
