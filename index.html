@@ -1,33 +1,245 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="el">
 <head>
-<meta charset="UTF-8">
-<title>Ειδικό Μισθολόγιο Φρουράς</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Μισθολόγιο Εξωτερικής Φρούρησης</title>
+  <link rel="stylesheet" href="./style.css?v=25">
 </head>
 <body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        
+        <div>
+          <div class="brandTitle">Υπολογιστής Μισθοδοσίας</div>
+          <div class="brandSub">Εξωτερικής Φρούρησης – Ειδικό Μισθολόγιο (ΚΑΤ Γ')</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="printBtn" type="button" onclick="window.print()">Εκτύπωση / PDF</button><button class="printBtn" id="resetStorageBtn" type="button">Μηδενισμός αποθήκευσης</button></div>
+    </header>
 
-<h1>Υπολογισμός Κρατήσεων</h1>
+    <section class="panel panel-top">
+      <h2>Στοιχεία</h2>
+      <div class="grid2">
+        <div class="field">
+          <label>Ασφάλιση</label>
+          <select id="insurance">
+            <option value="pre93">Πριν από 01/01/1993</option>
+            <option value="post93" selected>Μετά από 01/01/1993</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Οικογενειακή κατάσταση</label>
+          <select id="family">
+            <option value="single" selected>Άγαμος</option>
+            <option value="married">Έγγαμος</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Τέκνα</label>
+          <select id="kids">
+            <option value="0" selected>0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5+</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Ημερομηνία Υπολογισμού</label>
+          <input id="calcDate" type="date">
+        </div>
+        <div class="field">
+          <label>Ημ/νία Διορισμού</label>
+          <input id="hireDate" type="date" value="2000-07-20">
+        </div>
+        <div class="field">
+          <label>Έτη υπηρεσίας</label>
+          <input id="years" type="text" readonly value="-">
+        </div>
+        <div class="field">
+          <label>Κλιμάκιο</label>
+          <input id="step" type="text" readonly value="-">
+        </div>
+        <div class="field">
+          <label>Εύρος ετών κλιμακίου</label>
+          <input id="rangeLabel" type="text" readonly value="-">
+        </div>
+        <div class="field">
+          <label>Ετήσιο φορολογητέο</label>
+          <input id="annualTaxable" type="text" readonly value="0,00">
+        </div>
+        <div class="field">
+          <label>Έκπτωση φόρου</label>
+          <input id="taxCreditOut" type="text" readonly value="0,00">
+        </div>
+      </div>
+    </section>
 
-<table>
-<thead>
-<tr>
-<th>Κράτηση</th>
-<th>%</th>
-<th>Ποσό (€)</th>
-</tr>
-</thead>
-<tbody>
-<tr><td>ΤΠΔΥ</td><td>4%</td><td id="tpdy"></td></tr>
-<tr><td>ΜΤΠΥ</td><td>4.5%</td><td id="mtpy"></td></tr>
-<tr><td>ΤΕΑΔΥ</td><td>3%</td><td id="teady"></td></tr>
-<tr><td>Υγειονομική</td><td>2.05%</td><td id="health"></td></tr>
-<tr><td>ΕΦΚΑ σύνταξη</td><td>6.67%</td><td id="efka"></td></tr>
-<tr><td>Ανεργία</td><td>2%</td><td id="unemp"></td></tr>
-</tbody>
-</table>
+    <div class="cols">
+      <section class="panel panel-pay">
+        <h2>Αποδοχές</h2>
+        <div class="line"><span>Βασικός μισθός</span><b><span id="basePay">0,00</span> €</b></div>
+        <div class="line"><span>Επίδομα ιδιαίτερων καθηκόντων</span><b><span id="dutyPay">0,00</span> €</b></div>
+        <div class="line"><span>Επίδομα τέκνων</span><b><span id="childPay">0,00</span> €</b></div>
 
-<script src="app.js"></script>
+        <div class="grid2">
+          <div class="field">
+            <label>Παραμεθόριος</label>
+            <select id="borderYes">
+              <option value="no" selected>ΟΧΙ</option>
+              <option value="yes">ΝΑΙ</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Προσωπική διαφορά</label>
+            <input id="personalDiff" type="number" step="0.01" value="0">
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label>Πενθήμερα / μήνα</label>
+            <input id="fiveDaysCount" type="number" step="1" value="0">
+          </div>
+          <div class="field">
+            <label>Τιμή πενθημέρου (€)</label>
+            <input id="fiveDaysRate" type="number" step="0.01" value="46">
+          </div>
+        </div>
+        <div class="miniCalc">
+          Μικτό: <b><span id="fiveGross">0,00</span> €</b><br>
+          Κρατήσεις: <b><span id="fiveDed">0,00</span> €</b><br>
+          Φόρος 20%: <b><span id="fiveTax">0,00</span> €</b><br>
+          Καθαρό: <b><span id="fiveNet">0,00</span> €</b>
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label>Νυχτερινά / μήνα</label>
+            <input id="nightCount" type="number" step="1" value="0">
+          </div>
+          <div class="field">
+            <label>Τιμή νύχτας (€)</label>
+            <input id="nightRate" type="number" step="0.01" value="26.5">
+          </div>
+        </div>
+        <div class="miniCalc">
+          Μικτό: <b><span id="nightGross">0,00</span> €</b><br>
+          Κρατήσεις: <b><span id="nightDed">0,00</span> €</b><br>
+          Φόρος 20%: <b><span id="nightTax">0,00</span> €</b><br>
+          Καθαρό: <b><span id="nightNet">0,00</span> €</b>
+        </div>
+
+        <div class="total total-green">
+          <span>ΣΥΝΟΛΟ ΑΠΟΔΟΧΩΝ</span>
+          <b><span id="grossTotal">0,00</span> €</b>
+        </div>
+      </section>
+
+      <section class="panel panel-ded">
+        <h2>Κρατήσεις</h2>
+        <div class="grid2">
+          <div class="field">
+            <label>Υγειονομική %</label>
+            <input id="rHealth" type="number" step="0.01" value="2.05">
+          </div>
+          <div class="field">
+            <label>ΕΦΚΑ σύνταξη %</label>
+            <input id="rEfka" type="number" step="0.01" value="6.67">
+          </div>
+          <div class="field">
+            <label>Αναγνώριση 5ετίας</label>
+            <select id="fiveYearsOn">
+              <option value="no" selected>ΟΧΙ</option>
+              <option value="yes">ΝΑΙ</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Ποσό 5ετίας (€)</label>
+            <input id="fiveYearsAmount" type="number" step="0.01" value="39.87">
+          </div>
+          <div class="field">
+            <label>Λοιπές κρατήσεις (€)</label>
+            <input id="otherFixed" type="number" step="0.01" value="0">
+          </div>
+          <div class="field">
+            <label>Μηνιαίος φόρος (αυτόματος)</label>
+            <input id="taxMonthlyOut" type="text" readonly value="0,00">
+          </div>
+        </div>
+
+        <div class="line"><span>Υγειονομική</span><b><span id="healthAmt">0,00</span> €</b></div>
+        <div class="line"><span>ΕΦΚΑ σύνταξη</span><b><span id="efkaAmt">0,00</span> €</b></div>
+        <div class="line"><span>Αναγνώριση 5ετίας</span><b><span id="fiveYearsDed">0,00</span> €</b></div>
+        <div class="line"><span>Λοιπές κρατήσεις</span><b><span id="otherAmt">0,00</span> €</b></div>
+        <div class="line"><span>Φόρος κύριου μισθού</span><b><span id="taxAmt">0,00</span> €</b></div>
+
+        <div class="total total-red">
+          <span>ΣΥΝΟΛΟ ΚΡΑΤΗΣΕΩΝ</span>
+          <b><span id="dedTotal">0,00</span> €</b>
+        </div>
+        <div class="total total-blue">
+          <span>ΠΛΗΡΩΤΕΟ ΠΟΣΟ</span>
+          <b><span id="netTotal">0,00</span> €</b>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel panel-cal">
+      <h2>Ημερολόγιο Βαρδιών</h2>
+
+      <div class="toolbar">
+        <button id="prevMonth" class="navBtn" type="button">◀</button>
+        <div id="calTitle" class="calTitle">—</div>
+        <button id="nextMonth" class="navBtn" type="button">▶</button>
+      </div>
+
+      <div class="shiftRow">
+        <button class="shiftBtn active" data-shift="P" type="button"><span class="badge bP">ΠΡ</span></button>
+        <button class="shiftBtn" data-shift="A" type="button"><span class="badge bA">ΑΠ</span></button>
+        <button class="shiftBtn" data-shift="N" type="button"><span class="badge bN">ΝΥ</span></button>
+        <button class="shiftBtn" data-shift="AD" type="button"><span class="badge bAD">ΑΔ</span></button>
+        <button class="shiftBtn" data-shift="R" type="button"><span class="badge bR">Ρ</span></button>
+      </div>
+
+      <div class="copyRow">
+        <label>Κύκλος</label>
+        <select id="cycleLen">
+          <option value="5" selected>5 ημερών</option>
+          <option value="10">10 ημερών</option>
+        </select>
+        <label>Αντιγραφή σε</label>
+        <select id="copyRange">
+          <option value="1" selected>Μήνα</option>
+          <option value="3">3 μήνες</option>
+          <option value="6">6 μήνες</option>
+          <option value="12">Έτος</option>
+        </select>
+        <button id="copyBtn" type="button">Αντιγραφή κύκλου</button>
+        <button id="clearMonthBtn" type="button">Σβήσιμο μήνα</button>
+      </div>
+
+      <div class="weekdays">
+        <div>Δε</div><div>Τρ</div><div>Τε</div><div>Πε</div><div>Πα</div><div>Σα</div><div>Κυ</div>
+      </div>
+      <div id="calGrid" class="calGrid"></div>
+
+      <div class="smallInfo">
+        Νυχτερινά (Δευ–Πεμ): <b id="sumNights">0</b> &nbsp; • &nbsp;
+        Πενθήμερα: <b id="sumFivedays">0</b>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div>Κατασκευή Κερμανίδης Μερκούριος — <a href="mailto:merkos1969@gmail.com">merkos1969@gmail.com</a></div>
+      <div style="margin-top:6px"><a href="./eidiko_misthologio_kat_g.xlsx" download>Excel – Ειδικό μισθολόγιο (ΚΑΤ Γ')</a></div>
+    </footer>
+  </div>
+
+  <script src="./data.js?v=25"></script>
+  <script src="./app.js?v=25"></script>
 </body>
 </html>
