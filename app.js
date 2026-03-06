@@ -279,7 +279,7 @@ function saveState(partial){
 
 function readInputsSnapshot(){
   const ids = [
-    'hireDate','calcDate','family','kids','insurance','borderYes',
+    'hireDate','family','kids','insurance','borderYes',
     'personalDiff','fiveDaysCount','fiveDaysRate','nightCount','nightRate',
     'baseMode','taxMode','manualTax','taxMonths',
     'fiveYearsOn','fiveYearsAmount','otherFixed',
@@ -311,13 +311,13 @@ function initDates(){
   const mm = String(today.getMonth()+1).padStart(2,'0');
   const dd = String(today.getDate()).padStart(2,'0');
   const cd = el('calcDate');
-  if (cd && !cd.value) cd.value = `${yyyy}-${mm}-${dd}`;
+  if (cd) cd.value = `${yyyy}-${mm}-${dd}`;
 }
 
 
 function hook(){
   const ids = [
-    'hireDate','calcDate','family','kids','insurance',
+    'hireDate','family','kids','insurance',
     'borderYes','personalDiff','fiveDaysCount','fiveDaysRate','nightCount','nightRate',
     'baseMode','taxMode','manualTax','taxMonths',
     'fiveYearsOn','fiveYearsAmount','otherFixed',
