@@ -79,3 +79,9 @@ body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,
   body{background:#fff}
   .panel,.topbar{box-shadow:none}
 }
+
+@media print{
+  body{zoom:0.85}
+  .page{max-width:100%}
+  .panel{page-break-inside:avoid}
+}
