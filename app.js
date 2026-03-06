@@ -231,20 +231,6 @@ $('netTotal').textContent = fmt(gross - deds);
 
     const cell = document.createElement('div');
     cell.className = 'day' + ((dow===0 || dow===6) ? ' weekend' : '') + (out ? ' out' : '');
-
-    const isNightBox = (val === 'N' || val === 'PN');
-    const isDutyBox = (val === 'P' || val === 'A' || val === 'N' || val === 'PN');
-    let isFiveDayBox = false;
-
-    if (dow === 5 && isNightBox) isFiveDayBox = true;
-    if ((dow === 6 || dow === 0) && isDutyBox) isFiveDayBox = true;
-
-    if (isNightBox) cell.classList.add('calendar-night');
-    if (isFiveDayBox) {
-      cell.classList.remove('calendar-night');
-      cell.classList.add('calendar-fiveday');
-    }
-
     cell.innerHTML = '<div class="num">' + date.getDate() + '</div>';
 
     const mark = document.createElement('div');
@@ -294,31 +280,19 @@ $('netTotal').textContent = fmt(gross - deds);
   function updateCountsFromCalendar(){
     let nights = 0;
     let fives = 0;
-
-    const dim = new Date(calYear, calMonth, 0).getDate();
-
-    for (let d = 1; d <= dim; d++){
-      const key = iso(calYear, calMonth, d);
-      const val = shifts[key];
-      if (!val) continue;
-
-      const date = new Date(calYear, calMonth - 1, d);
-      const day = date.getDay(); // 0 Κυρ ... 6 Σαβ
-
+    for (const [key, val] of Object.entries(shifts)){
+      const d = fromIso(key);
+      const day = d.getDay(); // 0 Sun ... 6 Sat
       const hasNight = (val === 'N' || val === 'PN');
       const hasWeekendDuty = (val === 'P' || val === 'A' || val === 'N' || val === 'PN');
 
-      // Νυχτερινά: Δευτέρα–Πέμπτη
-      if (day >= 1 && day <= 4 && hasNight){
+      if (day >= 1 && day <= 4 && hasNight){ // Mon-Thu
         nights += 1;
       }
-
-      // Πενθήμερα: Παρασκευή νύχτα, Σάββατο/Κυριακή όλες οι βάρδιες
       if ((day === 5 && hasNight) || ((day === 6 || day === 0) && hasWeekendDuty)){
         fives += 1;
       }
     }
-
     $('sumNights').textContent = String(nights);
     $('sumFivedays').textContent = String(fives);
   }

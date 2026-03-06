@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Μισθολόγιο Εξωτερικής Φρούρησης</title>
-  <link rel="stylesheet" href="./style.css?v=38">
+  <link rel="stylesheet" href="./style.css?v=40">
 </head>
 <body>
   <div class="page">
@@ -19,7 +19,13 @@
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="printBtn" type="button" onclick="window.print()">Εκτύπωση / PDF</button><button class="printBtn" id="resetStorageBtn" type="button">Μηδενισμός αποθήκευσης</button></div>
     </header>
 
-    <section class="panel panel-top">
+    
+<div class="printTitle">
+  Εκκαθαριστικό Υπολογισμού Μισθοδοσίας<br>
+  Εξωτερικής Φρούρησης Καταστημάτων Κράτησης
+</div>
+
+<section class="panel panel-top">
       <h2>Στοιχεία</h2>
       <div class="grid2">
         <div class="field">
@@ -237,13 +243,26 @@
       </div>
     </section>
 
+    
+<section class="panel panel-notes">
+  <h2>Παρατηρήσεις Υπολογισμού</h2>
+  <div class="miniCalc">
+    Τα <b>νυχτερινά</b> υπολογίζονται μόνο για υπηρεσίες νύχτας που εκτελούνται
+    <b>Δευτέρα έως και Πέμπτη</b>.<br><br>
+    Τα <b>πενθήμερα</b> υπολογίζονται για:<br>
+    • <b>Παρασκευή νύχτα</b><br>
+    • <b>Σάββατο</b> σε όλες τις βάρδιες<br>
+    • <b>Κυριακή</b> σε όλες τις βάρδιες
+  </div>
+</section>
+
     <footer class="footer">
       <div>Κατασκευή Κερμανίδης Μερκούριος — <a href="mailto:merkos1969@gmail.com">merkos1969@gmail.com</a></div>
       <div style="margin-top:6px"><a href="./eidiko_misthologio_kat_g.xlsx" download>Excel – Ειδικό μισθολόγιο (ΚΑΤ Γ')</a></div>
     </footer>
   </div>
 
-  <script src="./data.js?v=38"></script>
-  <script src="./app.js?v=38"></script>
+  <script src="./data.js?v=40"></script>
+  <script src="./app.js?v=40"></script>
 </body>
 </html>
