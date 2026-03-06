@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Μισθολόγιο Εξωτερικής Φρούρησης</title>
-  <link rel="stylesheet" href="./style.css?v=22">
+  <link rel="stylesheet" href="./style.css?v=25">
 </head>
 <body>
   <div class="page">
@@ -16,7 +16,7 @@
           <div class="brandSub">Εξωτερικής Φρούρησης – Ειδικό Μισθολόγιο (ΚΑΤ Γ')</div>
         </div>
       </div>
-      <button class="printBtn" type="button" onclick="window.print()">Εκτύπωση / PDF</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="printBtn" type="button" onclick="window.print()">Εκτύπωση / PDF</button><button class="printBtn" id="resetStorageBtn" type="button">Μηδενισμός αποθήκευσης</button></div>
     </header>
 
     <section class="panel panel-top">
@@ -239,7 +239,7 @@
     </footer>
   </div>
 
-  <script src="./data.js?v=22"></script>
-  <script src="./app.js?v=22"></script>
+  <script src="./data.js?v=25"></script>
+  <script src="./app.js?v=25"></script>
 </body>
 </html>

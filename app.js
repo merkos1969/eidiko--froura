@@ -391,6 +391,8 @@
     });
     $('copyBtn').addEventListener('click', copyCycle);
     $('clearMonthBtn').addEventListener('click', clearCurrentMonth);
+    const resetBtn = $('resetStorageBtn');
+    if (resetBtn){ resetBtn.addEventListener('click', function(){ try{ localStorage.removeItem(LS); }catch(e){} location.reload(); }); }
 
     document.querySelectorAll('input,select').forEach(el => {
       el.addEventListener('input', compute);
