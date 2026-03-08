@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Μισθολόγιο Εξωτερικής Φρούρησης</title>
-  <link rel="stylesheet" href="./style.css?v=38">
+  <link rel="stylesheet" href="./style.css?v=43">
 </head>
 <body>
   <div class="page">
@@ -16,7 +16,7 @@
           <div class="brandSub">Εξωτερικής Φρούρησης – Ειδικό Μισθολόγιο (ΚΑΤ Γ')</div>
         </div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="printBtn" type="button" onclick="window.print()">Εκτύπωση / PDF</button><button class="printBtn" id="resetStorageBtn" type="button">Μηδενισμός αποθήκευσης</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="printBtn" type="button" onclick="window.print()">Εκκαθαριστικό / PDF</button><button class="printBtn" id="resetStorageBtn" type="button">Μηδενισμός αποθήκευσης</button></div>
     </header>
 
     <section class="panel panel-top">
@@ -50,6 +50,10 @@
         <div class="field">
           <label>Ημερομηνία Υπολογισμού</label>
           <input id="calcDate" type="date">
+        </div>
+        <div class="field">
+          <label>Ημ/νία Γέννησης</label>
+          <input id="birthDate" type="date">
         </div>
         <div class="field">
           <label>Ημ/νία Διορισμού</label>
@@ -237,13 +241,68 @@
       </div>
     </section>
 
+
+    <section class="panel panel-slip" id="printSlip">
+      <h2>Εκκαθαριστικό</h2>
+
+      <div class="slipBlock">
+        <div class="slipHead">Αποδοχές</div>
+        <div class="line"><span>Βασικός μισθός</span><b><span id="slipBase">0,00</span> €</b></div>
+        <div class="line"><span>Επίδομα ιδιαίτερων καθηκόντων</span><b><span id="slipDuty">0,00</span> €</b></div>
+        <div class="line"><span>Επίδομα τέκνων</span><b><span id="slipChild">0,00</span> €</b></div>
+        <div class="line"><span>Παραμεθόριος</span><b><span id="slipBorder">0,00</span> €</b></div>
+        <div class="line"><span>Προσωπική διαφορά</span><b><span id="slipPersonal">0,00</span> €</b></div>
+        <div class="total total-green">
+          <span>ΣΥΝΟΛΟ ΑΠΟΔΟΧΩΝ</span>
+          <b><span id="slipGross">0,00</span> €</b>
+        </div>
+      </div>
+
+      <div class="slipBlock">
+        <div class="slipHead">Κρατήσεις - Φορολογία</div>
+        <div class="line"><span>ΤΠΔΥ</span><b><span id="slipTpdy">0,00</span> €</b></div>
+        <div class="line"><span>ΜΤΠΥ</span><b><span id="slipMtpy">0,00</span> €</b></div>
+        <div class="line"><span>ΤΕΑΔΥ</span><b><span id="slipTeady">0,00</span> €</b></div>
+        <div class="line"><span>Υγειονομική</span><b><span id="slipHealth">0,00</span> €</b></div>
+        <div class="line"><span>ΕΦΚΑ σύνταξη</span><b><span id="slipEfka">0,00</span> €</b></div>
+        <div class="line"><span>Ανεργία</span><b><span id="slipUnemp">0,00</span> €</b></div>
+        <div class="line"><span>Αναγνώριση 5ετίας</span><b><span id="slipFiveYears">0,00</span> €</b></div>
+        <div class="line"><span>Λοιπές κρατήσεις</span><b><span id="slipOther">0,00</span> €</b></div>
+        <div class="line"><span>Φόρος κύριου μισθού</span><b><span id="slipTax">0,00</span> €</b></div>
+        <div class="total total-red">
+          <span>ΣΥΝΟΛΟ ΚΡΑΤΗΣΕΩΝ</span>
+          <b><span id="slipDed">0,00</span> €</b>
+        </div>
+      </div>
+
+      <div class="slipBlock">
+        <div class="slipHead">Νύχτες - 5μερα με κρατήσεις</div>
+        <div class="line"><span>Νυχτερινά μικτά</span><b><span id="slipNightGross">0,00</span> €</b></div>
+        <div class="line"><span>Κρατήσεις νυχτερινών</span><b><span id="slipNightDedTax">0,00</span> €</b></div>
+        <div class="line"><span>Καθαρά νυχτερινά</span><b><span id="slipNightNet">0,00</span> €</b></div>
+        <div class="line"><span>5μερα μικτά</span><b><span id="slipFiveGross">0,00</span> €</b></div>
+        <div class="line"><span>Κρατήσεις 5μέρων</span><b><span id="slipFiveDedTax">0,00</span> €</b></div>
+        <div class="line"><span>Καθαρά 5μερα</span><b><span id="slipFiveNet">0,00</span> €</b></div>
+        <div class="total total-green">
+          <span>ΚΑΘΑΡΟ ΝΥΧΤΕΣ - 5ΜΕΡΑ</span>
+          <b><span id="slipExtrasNet">0,00</span> €</b>
+        </div>
+      </div>
+
+      <div class="total total-blue slipFinal">
+        <span>ΠΛΗΡΩΤΕΟ ΠΟΣΟ</span>
+        <b><span id="slipNet">0,00</span> €</b>
+      </div>
+    </section>
+
+
     <footer class="footer">
       <div>Κατασκευή Κερμανίδης Μερκούριος — <a href="mailto:merkos1969@gmail.com">merkos1969@gmail.com</a></div>
       <div style="margin-top:6px"><a href="./eidiko_misthologio_kat_g.xlsx" download>Excel – Ειδικό μισθολόγιο (ΚΑΤ Γ')</a></div>
     </footer>
   </div>
 
-  <script src="./data.js?v=38"></script>
-  <script src="./app.js?v=38"></script>
+  <script src="./data.js?v=43"></script>
+  <script src="./app.js?v=43"></script>
 </body>
 </html>
