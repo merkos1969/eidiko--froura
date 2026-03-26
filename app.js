@@ -131,7 +131,8 @@
 
     const cat = categoryKey();
     const rec = (step && window.PAY_TABLE.byStep && window.PAY_TABLE.byStep[String(step)] && window.PAY_TABLE.byStep[String(step)][cat]) || {base:0,duty:0,child:0,total:0};
-    const base = Number(rec.base || 0);
+    const BASE_INCREASE = 40;
+    const base = Number(rec.base || 0) + BASE_INCREASE;
     const duty = Number(rec.duty || 0);
     const child = Number(rec.child || 0);
 
