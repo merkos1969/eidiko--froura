@@ -1,0 +1,16 @@
+{
+  "name": "Εξωτερική Φρούρηση",
+  "short_name": "Φρούρηση",
+  "start_url": "/eidiko--froura/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2b4c7e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "logo_poyef.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
