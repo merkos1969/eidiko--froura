@@ -1,15 +1,15 @@
 {
-  "name": "Εξωτερική Φρούρηση",
-  "short_name": "Φρούρηση",
+  "name": "Μισθολόγιο Εξωτερικής Φρουράς",
+  "short_name": "Φρουρά",
   "start_url": "/eidiko--froura/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2b4c7e",
+  "background_color": "#081a33",
+  "theme_color": "#081a33",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "logo_poyef.png",
-      "sizes": "192x192",
+      "src": "splash.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]

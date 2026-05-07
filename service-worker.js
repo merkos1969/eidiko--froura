@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eidiko-froura-v1';
+const CACHE_NAME = 'eidiko-froura-v2';
 
 const urlsToCache = [
   '/eidiko--froura/',
@@ -6,7 +6,7 @@ const urlsToCache = [
   '/eidiko--froura/style.css',
   '/eidiko--froura/app.js',
   '/eidiko--froura/data.js',
-  '/eidiko--froura/logo_poyef.png'
+  '/eidiko--froura/splash.png'
 ];
 
 self.addEventListener('install', event => {
