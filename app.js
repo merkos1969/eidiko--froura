@@ -1,5 +1,4 @@
-// app.js - Υπολογισμός νυχτερινών και πενθήμερων
-
+// app.js - Υπολογισμός νυχτερινών και πενθήμερων με Παρασκευή-Σάββατο-Κυριακή
 function calculateShifts(schedule) {
     let nightCount = 0;
     let fiveDayCount = 0;
@@ -12,7 +11,7 @@ function calculateShifts(schedule) {
             nightCount++; // κάθε νύχτα μετράει
         }
 
-        // Οι νύχτες Παρασκευή, Σάββατο, Κυριακή προσμετρούν και στο 5μερο
+        // Νύχτες Παρασκευή, Σάββατο, Κυριακή προσμετρούν και στο 5μερο
         if (day.shift === 'ΝΥ' && ['Πα', 'Σα', 'Κυ'].includes(day.dayOfWeek)) {
             fiveDayCount++;
         }
