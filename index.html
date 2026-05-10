@@ -4,11 +4,34 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Μισθολόγιο Εξωτερικής Φρούρησης</title>
-  <link rel="stylesheet" href="./style.css?v=43">
+  <link rel="stylesheet" href="./style.css?v=90">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#081a33">
+
+  <style>
+    #appSplash {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 999999;
+      background-color: #081a33;
+      background-image: url('./splash_fullscreen.png?v=90');
+      background-position: center center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      transition: opacity .45s ease, visibility .45s ease;
+    }
+    #appSplash.hide {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+  </style>
+
 </head>
 <body>
+  <div id="appSplash" aria-hidden="true"></div>
   <div class="page">
     <header class="topbar">
       <div class="brand">
@@ -304,13 +327,22 @@
     </footer>
   </div>
 
-  <script src="./data.js?v=43"></script>
-  <script src="./app.js?v=43"></script>
+  <script src="./data.js?v=90"></script>
+  <script src="./app.js?v=90"></script>
 
   <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js');
-  }
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        var splash = document.getElementById('appSplash');
+        if (splash) splash.classList.add('hide');
+      }, 1400);
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('./service-worker.js?v=90');
+      });
+    }
   </script>
 
 </body>

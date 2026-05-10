@@ -1,7 +1,8 @@
 {
   "name": "Μισθολόγιο Εξωτερικής Φρουράς",
   "short_name": "Φρουρά",
-  "start_url": "/eidiko--froura/",
+  "start_url": "/eidiko--froura/?v=90",
+  "scope": "/eidiko--froura/",
   "display": "standalone",
   "background_color": "#081a33",
   "theme_color": "#081a33",
@@ -10,7 +11,8 @@
     {
       "src": "splash.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
