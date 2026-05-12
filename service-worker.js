@@ -1,17 +1,16 @@
-const CACHE_NAME = 'eidiko-froura-v101';
+const CACHE_NAME = 'eidiko-froura-v44';
 const URLS_TO_CACHE = [
   './',
   './index.html',
-  './style.css',
-  './app.js',
-  './TAX_TABLE.js',
-  './data.js',
-  './manifest.json',
+  './style.css?v=43',
+  './data.js?v=43',
+  './app.js?v=43',
   './icon-192.png',
   './icon-512.png',
   './logo_poyef.png',
   './splash.png',
-  './splash_fullscreen.png'
+  './splash_fullscreen.png',
+  './eidiko_misthologio_kat_g.xlsx'
 ];
 
 self.addEventListener('install', (event) => {
@@ -35,12 +34,12 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
+    caches.match(event.request).then((cached) => {
+      return cached || fetch(event.request).then((response) => {
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         return response;
-      })
-      .catch(() => caches.match(event.request))
+      }).catch(() => cached);
+    })
   );
 });
