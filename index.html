@@ -5,18 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Eidiko Froura</title>
 
+<!-- PWA manifest -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0078D7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-<link rel="stylesheet" href="styles.css">
+<!-- CSS -->
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <h1>Καλώς ήρθατε στο Eidiko Froura</h1>
 
+<!-- Κύριο JS -->
 <script src="app.js"></script>
+<script src="TAX_TABLE.js"></script>
+<script src="data.js"></script>
+
+<!-- Service Worker -->
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js')
@@ -24,5 +31,6 @@ if ('serviceWorker' in navigator) {
     .catch(err => console.log('Service Worker failed', err));
 }
 </script>
+
 </body>
 </html>
