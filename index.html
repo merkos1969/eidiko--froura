@@ -193,8 +193,10 @@
   <div class="line"><span>Λοιπές κρατήσεις</span><b><span id="otherAmt">0,00</span> €</b></div>
   <div class="line"><span>Φόρος κύριου μισθού</span><b><span id="taxAmt">0,00</span> €</b></div>
 
+  <div class="line"><span>Σύνολο κρατήσεων κύριου μισθού</span><b><span id="baseDedTotal">0,00</span> €</b></div>
+  <div class="line"><span>Κρατήσεις + φόρος νυχτών/5ημέρων</span><b><span id="extrasDedTotal">0,00</span> €</b></div>
   <div class="total total-red">
-    <span>ΣΥΝΟΛΟ ΚΡΑΤΗΣΕΩΝ</span>
+    <span>ΓΕΝΙΚΟ ΣΥΝΟΛΟ ΚΡΑΤΗΣΕΩΝ</span>
     <b><span id="dedTotal">0,00</span> €</b>
   </div>
   <div class="total total-blue">
@@ -279,11 +281,12 @@
         <div class="line"><span>Αναγνώριση 5ετίας</span><b><span id="slipFiveYears">0,00</span> €</b></div>
         <div class="line"><span>Λοιπές κρατήσεις</span><b><span id="slipOther">0,00</span> €</b></div>
         <div class="line"><span>Φόρος κύριου μισθού</span><b><span id="slipTax">0,00</span> €</b></div>
+        <div class="line"><span>Κρατήσεις κύριου μισθού</span><b><span id="slipBaseDed">0,00</span> €</b></div>
+        <div class="line"><span>Κρατήσεις + φόρος νυχτών/5ημέρων</span><b><span id="slipExtrasDed">0,00</span> €</b></div>
         <div class="total total-red">
-          <span>ΣΥΝΟΛΟ ΚΡΑΤΗΣΕΩΝ</span>
+          <span>ΓΕΝΙΚΟ ΣΥΝΟΛΟ ΚΡΑΤΗΣΕΩΝ</span>
           <b><span id="slipDed">0,00</span> €</b>
         </div>
-      </div>
 
       <div class="slipBlock">
         <div class="slipHead">Νύχτες - 5μερα με κρατήσεις</div>
@@ -410,7 +413,8 @@
           readText('fiveDed') + readText('fiveTax') +
           readText('nightDed') + readText('nightTax');
 
-        const correctedDeductions = baseDeductions + POYEF + baseTax + extrasDeductions;
+        const baseDeductionsTotal = baseDeductions + POYEF + baseTax;
+        const correctedDeductions = baseDeductionsTotal + extrasDeductions;
         const gross = readText('grossTotal');
         const correctedNet = gross - correctedDeductions;
 
@@ -418,6 +422,8 @@
         setText('taxAmt', baseTax);
         setText('poyefAmt', POYEF);
         setValue('taxMonthlyOut', baseTax);
+        setText('baseDedTotal', baseDeductionsTotal);
+        setText('extrasDedTotal', extrasDeductions);
         setText('dedTotal', correctedDeductions);
         setText('netTotal', correctedNet);
 
@@ -428,6 +434,8 @@
         // Εκκαθαριστικό / PDF.
         setText('slipTax', baseTax);
         setText('slipPoyef', POYEF);
+        setText('slipBaseDed', baseDeductionsTotal);
+        setText('slipExtrasDed', extrasDeductions);
         setText('slipDed', correctedDeductions);
         setText('slipNet', correctedNet);
       } finally {
