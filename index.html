@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Μισθολόγιο Εξωτερικής Φρούρησης</title>
-  <link rel="stylesheet" href="./style.css?v=43">
+  <link rel="stylesheet" href="https://merkos1969.github.io/eidiko--froura/style.css?v=43">
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#04122a">
   <meta name="mobile-web-app-capable" content="yes">
@@ -179,7 +179,7 @@
 
   <div class="miniCalc">
     Βασικές κρατήσεις κύριου μισθού:<br>
-    ΤΠΔΥ 4% • ΜΤΠΥ (πριν/μετά 1993) • ΤΕΑΔΥ 3% • Υγειονομική 2,05% • ΕΦΚΑ 6,67% • Ανεργία 2%
+    ΤΠΔΥ 4% • ΜΤΠΥ (πριν/μετά 1993) • ΤΕΑΔΥ 3% • Υγειονομική 2,05% • ΕΦΚΑ 6,67% • Ανεργία 2% • ΠΟΥΕΦ 4€
   </div>
 
   <div class="line"><span>ΤΠΔΥ (4%)</span><b><span id="tpdyAmt">0,00</span> €</b></div>
@@ -188,6 +188,7 @@
   <div class="line"><span>Υγειονομική (2,05%)</span><b><span id="healthAmt">0,00</span> €</b></div>
   <div class="line"><span>ΕΦΚΑ σύνταξη (6,67%)</span><b><span id="efkaAmt">0,00</span> €</b></div>
   <div class="line"><span>Ανεργία (2%)</span><b><span id="unempAmt">0,00</span> €</b></div>
+  <div class="line"><span>Εισφορά ΠΟΥΕΦ</span><b><span id="poyefAmt">4,00</span> €</b></div>
   <div class="line"><span>Αναγνώριση 5ετίας</span><b><span id="fiveYearsDed">0,00</span> €</b></div>
   <div class="line"><span>Λοιπές κρατήσεις</span><b><span id="otherAmt">0,00</span> €</b></div>
   <div class="line"><span>Φόρος κύριου μισθού</span><b><span id="taxAmt">0,00</span> €</b></div>
@@ -274,6 +275,7 @@
         <div class="line"><span>Υγειονομική</span><b><span id="slipHealth">0,00</span> €</b></div>
         <div class="line"><span>ΕΦΚΑ σύνταξη</span><b><span id="slipEfka">0,00</span> €</b></div>
         <div class="line"><span>Ανεργία</span><b><span id="slipUnemp">0,00</span> €</b></div>
+        <div class="line"><span>Εισφορά ΠΟΥΕΦ</span><b><span id="slipPoyef">4,00</span> €</b></div>
         <div class="line"><span>Αναγνώριση 5ετίας</span><b><span id="slipFiveYears">0,00</span> €</b></div>
         <div class="line"><span>Λοιπές κρατήσεις</span><b><span id="slipOther">0,00</span> €</b></div>
         <div class="line"><span>Φόρος κύριου μισθού</span><b><span id="slipTax">0,00</span> €</b></div>
@@ -310,11 +312,148 @@
     </footer>
   </div>
 
-  <script src="./data.js?v=43"></script>
-  <script src="./app.js?v=43"></script>
+  <script src="https://merkos1969.github.io/eidiko--froura/data.js?v=43"></script>
+  <script src="https://merkos1969.github.io/eidiko--froura/app.js?v=43"></script>
+
+  <script>
+  /* v44 — Διόρθωση φορολογίας νυχτερινών / πενθημέρων
+     Τα πρόσθετα φορολογούνται ξεχωριστά και ΔΕΝ αυξάνουν ξανά
+     τον φόρο του κύριου μισθού. */
+  (() => {
+    const byId = (id) => document.getElementById(id);
+    const num = (value) => {
+      if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+      const s = String(value ?? '')
+        .replace(/\s/g, '')
+        .replace(/€/g, '')
+        .replace(/\./g, '')
+        .replace(',', '.');
+      const n = parseFloat(s);
+      return Number.isFinite(n) ? n : 0;
+    };
+    const money = (v) => Number(v || 0).toLocaleString('el-GR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    const setText = (id, value) => {
+      const el = byId(id);
+      if (el) el.textContent = money(value);
+    };
+    const setValue = (id, value) => {
+      const el = byId(id);
+      if (el) el.value = money(value);
+    };
+    const readText = (id) => {
+      const el = byId(id);
+      return el ? num(el.textContent) : 0;
+    };
+    const fire = (el) => {
+      if (!el) return;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    let patching = false;
+    let timer = null;
+
+    function applyExtrasTaxFix() {
+      if (patching) return;
+      const five = byId('fiveDaysCount');
+      const night = byId('nightCount');
+      const taxEl = byId('taxAmt');
+      if (!five || !night || !taxEl) return;
+
+      const fiveVal = five.value;
+      const nightVal = night.value;
+      const hasExtras = num(fiveVal) > 0 || num(nightVal) > 0;
+      const POYEF = 4.00;
+
+      patching = true;
+      try {
+        // 1) Ο φόρος κύριου μισθού πρέπει να υπολογίζεται χωρίς νύχτες/5μερα.
+        let baseTax;
+        let baseAnnualTaxable;
+        let baseTaxCredit;
+        if (hasExtras) {
+          five.value = '0';
+          night.value = '0';
+          fire(five);
+          fire(night);
+          baseTax = readText('taxAmt');
+          baseAnnualTaxable = byId('annualTaxable') ? byId('annualTaxable').value : null;
+          baseTaxCredit = byId('taxCreditOut') ? byId('taxCreditOut').value : null;
+
+          // 2) Επαναφέρουμε νύχτες/5μερα για τις δικές τους κρατήσεις/φόρο.
+          five.value = fiveVal;
+          night.value = nightVal;
+          fire(five);
+          fire(night);
+        } else {
+          baseTax = readText('taxAmt');
+          baseAnnualTaxable = byId('annualTaxable') ? byId('annualTaxable').value : null;
+          baseTaxCredit = byId('taxCreditOut') ? byId('taxCreditOut').value : null;
+        }
+
+        // 3) Κύριες κρατήσεις (χωρίς τον φόρο κύριου μισθού).
+        const baseDeductions =
+          readText('tpdyAmt') +
+          readText('mtpyAmt') +
+          readText('teadyAmt') +
+          readText('healthAmt') +
+          readText('efkaAmt') +
+          readText('unempAmt') +
+          readText('fiveYearsDed') +
+          readText('otherAmt');
+
+        // 4) Νύχτες/5μερα: οι δικές τους κρατήσεις + ο δικός τους φόρος 20%.
+        const extrasDeductions =
+          readText('fiveDed') + readText('fiveTax') +
+          readText('nightDed') + readText('nightTax');
+
+        const correctedDeductions = baseDeductions + POYEF + baseTax + extrasDeductions;
+        const gross = readText('grossTotal');
+        const correctedNet = gross - correctedDeductions;
+
+        // Εμφάνιση σωστού φόρου και τελικών ποσών.
+        setText('taxAmt', baseTax);
+        setText('poyefAmt', POYEF);
+        setValue('taxMonthlyOut', baseTax);
+        setText('dedTotal', correctedDeductions);
+        setText('netTotal', correctedNet);
+
+        // Το ετήσιο φορολογητέο/έκπτωση αφορούν πλέον μόνο τον κύριο μισθό.
+        if (baseAnnualTaxable !== null && byId('annualTaxable')) byId('annualTaxable').value = baseAnnualTaxable;
+        if (baseTaxCredit !== null && byId('taxCreditOut')) byId('taxCreditOut').value = baseTaxCredit;
+
+        // Εκκαθαριστικό / PDF.
+        setText('slipTax', baseTax);
+        setText('slipPoyef', POYEF);
+        setText('slipDed', correctedDeductions);
+        setText('slipNet', correctedNet);
+      } finally {
+        patching = false;
+      }
+    }
+
+    function scheduleFix() {
+      if (patching) return;
+      clearTimeout(timer);
+      timer = setTimeout(applyExtrasTaxFix, 0);
+    }
+
+    window.addEventListener('load', () => {
+      // Εκτελείται μετά το app.js και ακολουθεί κάθε αλλαγή στοιχείων/ημερολογίου.
+      document.addEventListener('input', scheduleFix, true);
+      document.addEventListener('change', scheduleFix, true);
+      document.addEventListener('click', () => setTimeout(scheduleFix, 0), true);
+      setTimeout(scheduleFix, 50);
+    });
+  })();
+  </script>
 
   <script>
     window.addEventListener('load', async () => {
+      if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
       if (!('serviceWorker' in navigator)) return;
       try {
         await navigator.serviceWorker.register('./service-worker.js', { scope: './' });
