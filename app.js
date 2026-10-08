@@ -2,7 +2,7 @@
 (function(){
   const $ = id => document.getElementById(id);
   const fmt = n => (Math.round((Number(n)||0)*100)/100).toFixed(2).replace('.', ',');
-  const LS = 'eidiko_v46_state';
+  const LS = 'eidiko_v22_state';
 
   let selectedShift = 'P';
   let calYear, calMonth;
@@ -27,12 +27,10 @@
     return (d2 - d1) / (365.25 * 24 * 3600 * 1000);
   }
 
-  // Πλήρεις μήνες από τον διορισμό. Χρησιμοποιείται για το πρώτο 12μηνο ΜΤΠΥ.
-  function fullMonthsBetween(a, b){
-    const d1 = new Date(a + 'T00:00:00');
-    const d2 = new Date(b + 'T00:00:00');
+  function fullMonthsBetween(a,b){
+    const d1 = new Date(a + 'T00:00:00'), d2 = new Date(b + 'T00:00:00');
     if (isNaN(d1) || isNaN(d2) || d2 < d1) return 0;
-    let months = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
+    let months = (d2.getFullYear()-d1.getFullYear())*12 + (d2.getMonth()-d1.getMonth());
     if (d2.getDate() < d1.getDate()) months--;
     return Math.max(0, months);
   }
@@ -132,183 +130,72 @@
   function compute(){
     const calc = $('calcDate').value || todayISO();
     const hire = $('hireDate').value || '2000-07-20';
-
-    // Βαθμολογικός χρόνος: μόνο από τον διορισμό στην ΥΕΦΚΚ.
     const gradeY = yearsBetween(hire, calc);
-
-    // Μισθολογικός χρόνος: υπηρεσία ΥΕΦΚΚ + αναγνωρισμένη προϋπηρεσία.
     const preServiceMonths = Math.max(0, Math.floor(Number($('preServiceMonths')?.value || 0)));
-    const salaryY = gradeY == null ? null : gradeY + (preServiceMonths / 12);
+    const salaryY = gradeY == null ? null : gradeY + preServiceMonths / 12;
 
+    $('years').value = gradeY == null ? '-' : gradeY.toFixed(2).replace('.', ',');
     if ($('gradeYears')) $('gradeYears').value = gradeY == null ? '-' : gradeY.toFixed(2).replace('.', ',');
     if ($('salaryYears')) $('salaryYears').value = salaryY == null ? '-' : salaryY.toFixed(2).replace('.', ',');
-    $('years').value = gradeY == null ? '-' : gradeY.toFixed(2).replace('.', ',');
 
-    // Ο βαθμός υπολογίζεται ΜΟΝΟ από τον χρόνο στην ΥΕΦΚΚ.
-    // Το μισθολογικό κλιμάκιο υπολογίζεται από τον συνολικό αναγνωρισμένο
-    // μισθολογικό χρόνο (ΥΕΦΚΚ + προϋπηρεσία). Οι δύο έννοιες δεν συγχέονται.
     const gradeRec = stepForYears(gradeY == null ? 0 : gradeY);
     const salaryRec = stepForYears(salaryY == null ? 0 : salaryY);
     const salaryStepKey = salaryRec ? salaryRec.step : null;
-
-    const extractTitle = (label) => {
-      const m = String(label || '').match(/\(([^)]+)\)/);
-      return m ? m[1] : '';
-    };
-    const extractRange = (label) => String(label || '').replace(/\([^)]*\)/g, '').trim();
-
-    if ($('gradeRank')) $('gradeRank').value = gradeRec ? extractTitle(gradeRec.label) : '-';
+    const title = r => { const m=String(r?.label||'').match(/\(([^)]+)\)/); return m ? m[1] : ''; };
+    const rangeOnly = r => String(r?.label||'').replace(/\([^)]*\)/g,'').trim();
+    if ($('gradeRank')) $('gradeRank').value = gradeRec ? title(gradeRec) : '-';
     $('step').value = salaryRec ? String(salaryRec.step).split(' ')[0] : '-';
-    $('rangeLabel').value = salaryRec ? extractRange(salaryRec.label) : '-';
+    $('rangeLabel').value = salaryRec ? rangeOnly(salaryRec) : '-';
 
     const cat = categoryKey();
-    const rec = (salaryStepKey && window.PAY_TABLE.byStep && window.PAY_TABLE.byStep[String(salaryStepKey)] && window.PAY_TABLE.byStep[String(salaryStepKey)][cat]) || {base:0,duty:0,child:0,total:0};
-    const BASE_INCREASE = 0;
-    const base = Number(rec.base || 0) + BASE_INCREASE;
-    const duty = Number(rec.duty || 0);
-    const child = Number(rec.child || 0);
-
+    const rec = (salaryStepKey && window.PAY_TABLE.byStep?.[String(salaryStepKey)]?.[cat]) || {base:0,duty:0,child:0};
+    const base = Number(rec.base||0), duty=Number(rec.duty||0), child=Number(rec.child||0);
     const border = $('borderYes').value === 'yes' ? 130 : 0;
-    const fiveCount = Number($('fiveDaysCount').value || 0);
-    const fiveRate = Number($('fiveDaysRate').value || 46);
-    const nightCount = Number($('nightCount').value || 0);
-    const nightRate = Number($('nightRate').value || 26.5);
+    const fiveCount=Number($('fiveDaysCount').value||0), fiveRate=Number($('fiveDaysRate').value||46);
+    const nightCount=Number($('nightCount').value||0), nightRate=Number($('nightRate').value||26.5);
+    const fiveGross=fiveCount*fiveRate, nightGross=nightCount*nightRate;
+    $('basePay').textContent=fmt(base); $('dutyPay').textContent=fmt(duty); $('childPay').textContent=fmt(child);
 
-    const fiveGross = fiveCount * fiveRate;
-    const nightGross = nightCount * nightRate;
+    const fiveDed=fiveGross*0.04, fiveTax=(fiveGross-fiveDed)*0.20, fiveNet=fiveGross-fiveDed-fiveTax;
+    const nightDed=nightGross*0.04, nightTax=(nightGross-nightDed)*0.20, nightNet=nightGross-nightDed-nightTax;
+    $('fiveGross').textContent=fmt(fiveGross); $('fiveDed').textContent=fmt(fiveDed); $('fiveTax').textContent=fmt(fiveTax); $('fiveNet').textContent=fmt(fiveNet);
+    $('nightGross').textContent=fmt(nightGross); $('nightDed').textContent=fmt(nightDed); $('nightTax').textContent=fmt(nightTax); $('nightNet').textContent=fmt(nightNet);
 
-    $('basePay').textContent = fmt(base);
-    $('dutyPay').textContent = fmt(duty);
-    $('childPay').textContent = fmt(child);
+    const gross=base+duty+child+border+fiveGross+nightGross; $('grossTotal').textContent=fmt(gross);
+    const regular=base+duty+child+border, insuranceType=$('insurance').value;
+    const tpdy=regular*0.04;
+    const mtpy=insuranceType==='post93' ? regular*0.045 : base*0.045+(duty+child+border)*0.01;
+    const teady=regular*0.03, health=regular*0.0205, efka=regular*0.0667, unemp=regular*0.02;
+    const fiveYears=$('fiveYearsOn').value==='yes'?Number($('fiveYearsAmount').value||39.87):0;
+    const other=Number($('otherFixed').value||0);
 
-    const fiveDed = fiveGross * 0.04;
-    const fiveTax = (fiveGross - fiveDed) * 0.20;
-    const fiveNet = fiveGross - fiveDed - fiveTax;
+    // ΜΤΠΥ: δικαίωμα εγγραφής = 1/12 του πρώτου πλήρους μήνα, για τους πρώτους 12 μήνες.
+    const active=fullMonthsBetween(hire,calc)<12;
+    const hireRec=stepForYears(preServiceMonths/12), hireStep=hireRec?.step;
+    const hirePay=(hireStep && window.PAY_TABLE.byStep?.[String(hireStep)]?.[cat])||{base:0,duty:0,child:0};
+    const mtpyEntryBase=Number(hirePay.base||0)+Number(hirePay.duty||0)+Number(hirePay.child||0)+border;
+    const mtpyEntry=active ? mtpyEntryBase/12 : 0;
 
-    const nightDed = nightGross * 0.04;
-    const nightTax = (nightGross - nightDed) * 0.20;
-    const nightNet = nightGross - nightDed - nightTax;
+    // Ακριβώς η αρχική φορολογική φόρμουλα — δεν προσθέτουμε την εγγραφή ΜΤΠΥ στο φορολογητέο.
+    const monthlyTaxable=Math.max(0,gross-tpdy-mtpy-teady-health-efka-unemp-fiveYears-other);
+    const annualTaxable=monthlyTaxable*12, kids=Number($('kids').value||0), taxInfo=progressiveTax(annualTaxable,kids);
+    $('annualTaxable').value=fmt(annualTaxable); $('taxCreditOut').value=fmt(taxInfo.credit);
+    const monthlyTax=taxInfo.finalTax/12; $('taxAmt').textContent=fmt(monthlyTax); $('taxMonthlyOut').value=fmt(monthlyTax);
 
-    $('fiveGross').textContent = fmt(fiveGross);
-    $('fiveDed').textContent = fmt(fiveDed);
-    $('fiveTax').textContent = fmt(fiveTax);
-    $('fiveNet').textContent = fmt(fiveNet);
+    if($('tpdyAmt'))$('tpdyAmt').textContent=fmt(tpdy); if($('mtpyAmt'))$('mtpyAmt').textContent=fmt(mtpy); if($('mtpyEntryAmt'))$('mtpyEntryAmt').textContent=fmt(mtpyEntry);
+    if($('mtpyEntryRow'))$('mtpyEntryRow').style.display=active?'':'none';
+    if($('teadyAmt'))$('teadyAmt').textContent=fmt(teady); if($('healthAmt'))$('healthAmt').textContent=fmt(health); if($('efkaAmt'))$('efkaAmt').textContent=fmt(efka); if($('unempAmt'))$('unempAmt').textContent=fmt(unemp);
+    $('fiveYearsDed').textContent=fmt(fiveYears); $('otherAmt').textContent=fmt(other);
+    const deds=tpdy+mtpy+mtpyEntry+teady+health+efka+unemp+fiveYears+other+monthlyTax+fiveDed+fiveTax+nightDed+nightTax;
+    $('dedTotal').textContent=fmt(deds); $('netTotal').textContent=fmt(gross-deds);
 
-    $('nightGross').textContent = fmt(nightGross);
-    $('nightDed').textContent = fmt(nightDed);
-    $('nightTax').textContent = fmt(nightTax);
-    $('nightNet').textContent = fmt(nightNet);
-
-    const gross = base + duty + child + border + fiveGross + nightGross;
-    $('grossTotal').textContent = fmt(gross);
-
-    
-
-const regular = base + duty + child + border;
-
-const insuranceType = $('insurance').value;
-
-// βασικές κρατήσεις
-const tpdy = regular * 0.04;
-
-// ΜΤΠΥ: μετά το 1993 = 4,5% σε βασικό + επιδόματα
-// πριν το 1993 = 4,5% στον βασικό + 1% στα επιδόματα
-let mtpy = 0;
-if (insuranceType === 'post93') {
-  mtpy = regular * 0.045;
-} else {
-  mtpy = base * 0.045 + (duty + child + border) * 0.01;
-}
-
-// Νεοδιορισμένος: για τους πρώτους 12 μήνες, επιπλέον
-// κράτηση δικαιώματος εγγραφής ΜΤΠΥ = 1/12 των ακαθάριστων αποδοχών
-// του ΠΡΩΤΟΥ ΟΛΟΚΛΗΡΟΥ ΜΗΝΑ μισθοδοσίας (όχι των σημερινών αποδοχών).
-// Για την εφαρμογή, ο πρώτος πλήρης μήνας υπολογίζεται με το
-// μισθολογικό κλιμάκιο που ίσχυε κατά τον διορισμό, μαζί με την
-// αναγνωρισμένη προϋπηρεσία που είχε ήδη πριν την ΥΕΦΚΚ.
-const mtpyEntryMonths = fullMonthsBetween(hire, calc);
-const mtpyEntryActive = mtpyEntryMonths < 12;
-const hirePreServiceMonths = Math.max(0, Math.floor(Number($('preServiceMonths')?.value || 0)));
-const hireSalaryYears = hirePreServiceMonths / 12;
-const hireSalaryRec = stepForYears(hireSalaryYears);
-const hireSalaryStepKey = hireSalaryRec ? hireSalaryRec.step : null;
-const hireRec = (hireSalaryStepKey && window.PAY_TABLE.byStep && window.PAY_TABLE.byStep[String(hireSalaryStepKey)] && window.PAY_TABLE.byStep[String(hireSalaryStepKey)][cat]) || {base:0,duty:0,child:0,total:0};
-const mtpyEntryBase = Number(hireRec.base || 0) + Number(hireRec.duty || 0) + Number(hireRec.child || 0) + border;
-const mtpyEntry = mtpyEntryActive ? (mtpyEntryBase / 12) : 0;
-
-const teady = regular * 0.03;
-const health = regular * 0.0205;
-const efka = regular * 0.0667;
-const unemp = regular * 0.02;
-
-const fiveYears = $('fiveYearsOn').value === 'yes' ? Number($('fiveYearsAmount').value || 39.87) : 0;
-const other = Number($('otherFixed').value || 0);
-
-const monthlyTaxable = Math.max(0, gross - tpdy - mtpy - mtpyEntry - teady - health - efka - unemp - fiveYears - other);
-const annualTaxable = monthlyTaxable * 12;
-const kids = Number($('kids').value || 0);
-const taxInfo = progressiveTax(annualTaxable, kids);
-
-$('annualTaxable').value = fmt(annualTaxable);
-$('taxCreditOut').value = fmt(taxInfo.credit);
-
-const monthlyTax = taxInfo.finalTax / 12;
-$('taxAmt').textContent = fmt(monthlyTax);
-$('taxMonthlyOut').value = fmt(monthlyTax);
-
-if ($('tpdyAmt')) $('tpdyAmt').textContent = fmt(tpdy);
-if ($('mtpyAmt')) $('mtpyAmt').textContent = fmt(mtpy);
-if ($('mtpyEntryAmt')) $('mtpyEntryAmt').textContent = fmt(mtpyEntry);
-if ($('mtpyEntryRow')) $('mtpyEntryRow').style.display = mtpyEntryActive ? '' : 'none';
-if ($('teadyAmt')) $('teadyAmt').textContent = fmt(teady);
-if ($('healthAmt')) $('healthAmt').textContent = fmt(health);
-if ($('efkaAmt')) $('efkaAmt').textContent = fmt(efka);
-if ($('unempAmt')) $('unempAmt').textContent = fmt(unemp);
-$('fiveYearsDed').textContent = fmt(fiveYears);
-$('otherAmt').textContent = fmt(other);
-
-const deds = tpdy + mtpy + mtpyEntry + teady + health + efka + unemp + fiveYears + other + monthlyTax + fiveDed + fiveTax + nightDed + nightTax;
-$('dedTotal').textContent = fmt(deds);
-$('netTotal').textContent = fmt(gross - deds);
-
-
-// Εκκαθαριστικό (1 σελίδα)
-if ($('slipBase')) $('slipBase').textContent = fmt(base);
-if ($('slipDuty')) $('slipDuty').textContent = fmt(duty);
-if ($('slipChild')) $('slipChild').textContent = fmt(child);
-if ($('slipBorder')) $('slipBorder').textContent = fmt(border);
-if ($('slipGross')) $('slipGross').textContent = fmt(regular);
-
-if ($('slipTpdy')) $('slipTpdy').textContent = fmt(tpdy);
-if ($('slipMtpy')) $('slipMtpy').textContent = fmt(mtpy);
-if ($('slipMtpyEntry')) $('slipMtpyEntry').textContent = fmt(mtpyEntry);
-if ($('slipMtpyEntryRow')) $('slipMtpyEntryRow').style.display = mtpyEntryActive ? '' : 'none';
-if ($('slipTeady')) $('slipTeady').textContent = fmt(teady);
-if ($('slipHealth')) $('slipHealth').textContent = fmt(health);
-if ($('slipEfka')) $('slipEfka').textContent = fmt(efka);
-if ($('slipUnemp')) $('slipUnemp').textContent = fmt(unemp);
-if ($('slipFiveYears')) $('slipFiveYears').textContent = fmt(fiveYears);
-if ($('slipOther')) $('slipOther').textContent = fmt(other);
-if ($('slipTax')) $('slipTax').textContent = fmt(monthlyTax);
-
-const regularDeds = tpdy + mtpy + mtpyEntry + teady + health + efka + unemp + fiveYears + other + monthlyTax;
-if ($('slipDed')) $('slipDed').textContent = fmt(regularDeds);
-
-if ($('slipNightGross')) $('slipNightGross').textContent = fmt(nightGross);
-if ($('slipNightDedTax')) $('slipNightDedTax').textContent = fmt(nightDed + nightTax);
-if ($('slipNightNet')) $('slipNightNet').textContent = fmt(nightNet);
-
-if ($('slipFiveGross')) $('slipFiveGross').textContent = fmt(fiveGross);
-if ($('slipFiveDedTax')) $('slipFiveDedTax').textContent = fmt(fiveDed + fiveTax);
-if ($('slipFiveNet')) $('slipFiveNet').textContent = fmt(fiveNet);
-
-const extrasNet = nightNet + fiveNet;
-if ($('slipExtrasNet')) $('slipExtrasNet').textContent = fmt(extrasNet);
-if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extrasNet);
-
-
-
-
+    if($('slipBase'))$('slipBase').textContent=fmt(base); if($('slipDuty'))$('slipDuty').textContent=fmt(duty); if($('slipChild'))$('slipChild').textContent=fmt(child); if($('slipBorder'))$('slipBorder').textContent=fmt(border); if($('slipGross'))$('slipGross').textContent=fmt(regular);
+    if($('slipTpdy'))$('slipTpdy').textContent=fmt(tpdy); if($('slipMtpy'))$('slipMtpy').textContent=fmt(mtpy); if($('slipMtpyEntry'))$('slipMtpyEntry').textContent=fmt(mtpyEntry); if($('slipMtpyEntryRow'))$('slipMtpyEntryRow').style.display=active?'':'none';
+    if($('slipTeady'))$('slipTeady').textContent=fmt(teady); if($('slipHealth'))$('slipHealth').textContent=fmt(health); if($('slipEfka'))$('slipEfka').textContent=fmt(efka); if($('slipUnemp'))$('slipUnemp').textContent=fmt(unemp); if($('slipFiveYears'))$('slipFiveYears').textContent=fmt(fiveYears); if($('slipOther'))$('slipOther').textContent=fmt(other); if($('slipTax'))$('slipTax').textContent=fmt(monthlyTax);
+    const regularDeds=tpdy+mtpy+mtpyEntry+teady+health+efka+unemp+fiveYears+other+monthlyTax; if($('slipDed'))$('slipDed').textContent=fmt(regularDeds);
+    if($('slipNightGross'))$('slipNightGross').textContent=fmt(nightGross); if($('slipNightDedTax'))$('slipNightDedTax').textContent=fmt(nightDed+nightTax); if($('slipNightNet'))$('slipNightNet').textContent=fmt(nightNet);
+    if($('slipFiveGross'))$('slipFiveGross').textContent=fmt(fiveGross); if($('slipFiveDedTax'))$('slipFiveDedTax').textContent=fmt(fiveDed+fiveTax); if($('slipFiveNet'))$('slipFiveNet').textContent=fmt(fiveNet);
+    const extrasNet=nightNet+fiveNet; if($('slipExtrasNet'))$('slipExtrasNet').textContent=fmt(extrasNet); if($('slipNet'))$('slipNet').textContent=fmt((regular-regularDeds)+extrasNet);
     saveState();
   }
 
@@ -512,8 +399,17 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
   function loadState(){
     try{
       const raw = localStorage.getItem(LS);
-      if (!raw) return;
-      const s = JSON.parse(raw);
+      const legacyRaw = localStorage.getItem('eidiko_v46_state');
+      if (!raw && !legacyRaw) return;
+      const s = raw ? JSON.parse(raw) : JSON.parse(legacyRaw);
+      // Αν υπάρχει παλαιότερη αποθήκευση v46 με την προϋπηρεσία,
+      // τη μεταφέρουμε ώστε να μη χαθεί η τιμή π.χ. 36 μήνες.
+      if (s.preServiceMonths == null && legacyRaw) {
+        try {
+          const legacy = JSON.parse(legacyRaw);
+          if (legacy.preServiceMonths != null) s.preServiceMonths = legacy.preServiceMonths;
+        } catch(e){}
+      }
       selectedShift = s.selectedShift || 'P';
       calYear = s.calYear || calYear;
       calMonth = s.calMonth || calMonth;
@@ -536,8 +432,6 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
       if (s.copyRange != null) $('copyRange').value = s.copyRange;
     } catch(e){}
   }
-
-  window.compute = compute;
 
   function init(){
     const now = new Date();

@@ -328,8 +328,8 @@
     </footer>
   </div>
 
-  <script src="./data.js?v=46"></script>
-  <script src="./app.js?v=46"></script>
+  <script src="./data.js?v=47"></script>
+  <script src="./app.js?v=47"></script>
 
   <script>
   /* v44 — Διόρθωση φορολογίας νυχτερινών / πενθημέρων
@@ -473,149 +473,7 @@
   })();
   </script>
 
-  <script>
-  /* v45 — Ξεχωριστή μισθολογική / βαθμολογική υπηρεσία + κράτηση εγγραφής ΜΤΠΥ */
-  (() => {
-    const byId = (id) => document.getElementById(id);
-    const num = (value) => {
-      if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
-      const n = parseFloat(String(value ?? '').replace(/\./g, '').replace(',', '.'));
-      return Number.isFinite(n) ? n : 0;
-    };
-    const money = (v) => Number(v || 0).toLocaleString('el-GR', {minimumFractionDigits:2, maximumFractionDigits:2});
-
-    function monthsBetween(a, b) {
-      if (!a || !b) return 0;
-      const x = new Date(a + 'T00:00:00');
-      const y = new Date(b + 'T00:00:00');
-      if (isNaN(x) || isNaN(y) || y < x) return 0;
-      let m = (y.getFullYear() - x.getFullYear()) * 12 + (y.getMonth() - x.getMonth());
-      if (y.getDate() < x.getDate()) m--;
-      return Math.max(0, m);
-    }
-
-    function yearsText(months) {
-      const y = Math.floor(months / 12);
-      const m = months % 12;
-      return y + ' έτη' + (m ? ' ' + m + ' μήνες' : '');
-    }
-
-    function updateServiceInfo() {
-      const hire = byId('hireDate')?.value;
-      const calc = byId('calcDate')?.value || new Date().toISOString().slice(0,10);
-      const pre = Math.max(0, Math.floor(num(byId('preServiceMonths')?.value)));
-      const gradeMonths = monthsBetween(hire, calc);
-      const salaryMonths = gradeMonths + pre;
-      if (byId('gradeYears')) byId('gradeYears').value = yearsText(gradeMonths);
-      if (byId('salaryYears')) byId('salaryYears').value = yearsText(salaryMonths);
-
-      // Βαθμός: υπολογίζεται μόνο από την υπηρεσία στην ΥΕΦΚΚ.
-      // Μισθολογικό κλιμάκιο: υπολογίζεται από ΥΕΦΚΚ + αναγνωρισμένη προϋπηρεσία.
-      const ranges = window.PAY_TABLE?.ranges || [];
-      const findRange = (years) => ranges.find(r => years >= Number(r.from) && years < Number(r.to));
-      const gradeRec = findRange(gradeMonths / 12);
-      const salaryRec = findRange(salaryMonths / 12);
-      const title = (rec) => {
-        const m = String(rec?.label || '').match(/\(([^)]+)\)/);
-        return m ? m[1] : '';
-      };
-      const rangeOnly = (rec) => String(rec?.label || '').replace(/\([^)]*\)/g, '').trim();
-      if (byId('gradeRank')) byId('gradeRank').value = gradeRec ? title(gradeRec) : '-';
-      if (byId('step')) byId('step').value = salaryRec ? String(salaryRec.step).split(' ')[0] : '-';
-      if (byId('rangeLabel')) byId('rangeLabel').value = salaryRec ? rangeOnly(salaryRec) : '-';
-
-      // Εξασφαλίζουμε ότι οι αποδοχές ακολουθούν το νέο μισθολογικό κλιμάκιο.
-      if (typeof window.compute === 'function') window.compute();
-    }
-
-    function updateMTPYEntry() {
-      const hire = byId('hireDate')?.value;
-      const calc = byId('calcDate')?.value || new Date().toISOString().slice(0,10);
-      const months = monthsBetween(hire, calc);
-      const active = months >= 0 && months < 12;
-      // Δικαίωμα εγγραφής ΜΤΠΥ: 1/12 των ακαθάριστων αποδοχών
-      // του ΠΡΩΤΟΥ ΟΛΟΚΛΗΡΟΥ ΜΗΝΑ μισθοδοσίας, όχι των σημερινών αποδοχών.
-      // Υπολογίζουμε το κλιμάκιο που ίσχυε κατά τον διορισμό, με βάση
-      // την αναγνωρισμένη προϋπηρεσία πριν την ΥΕΦΚΚ.
-      const pre = Math.max(0, Math.floor(num(byId('preServiceMonths')?.value)));
-      const hireYears = pre / 12;
-      const ranges = window.PAY_TABLE?.ranges || [];
-      const hireRec = ranges.find(r => hireYears >= Number(r.from) && hireYears < Number(r.to));
-      const hireStep = hireRec?.step;
-      const cat = (() => {
-        const fam = byId('family')?.value;
-        const kids = Math.min(4, Number(byId('kids')?.value || 0));
-        if (fam === 'single') return 'Άγαμος';
-        if (kids === 0) return 'Έγγαμος χωρίς παιδιά';
-        if (kids === 1) return '1 παιδί';
-        return `${kids} παιδιά`;
-      })();
-      const rec = (hireStep && window.PAY_TABLE?.byStep?.[String(hireStep)]?.[cat]) || {base:0,duty:0,child:0};
-      const base = Number(rec.base || 0);
-      const duty = Number(rec.duty || 0);
-      const child = Number(rec.child || 0);
-      const border = byId('borderYes')?.value === 'yes' ? 130 : 0;
-      const mtpyEntryBase = base + duty + child + border;
-      const amount = active ? mtpyEntryBase / 12 : 0;
-      const row = byId('mtpyEntryRow');
-      const slipRow = byId('slipMtpyEntryRow');
-      if (row) row.style.display = active ? '' : 'none';
-      if (slipRow) slipRow.style.display = active ? '' : 'none';
-      if (byId('mtpyEntryAmt')) byId('mtpyEntryAmt').textContent = money(amount);
-      if (byId('slipMtpyEntry')) byId('slipMtpyEntry').textContent = money(amount);
-    }
-
-    function applyMTPYEntryToTotals() {
-      const row = byId('mtpyEntryRow');
-      if (!row) return;
-      const active = row.style.display !== 'none';
-      const entry = active ? num(byId('mtpyEntryAmt')?.textContent) : 0;
-      const baseEl = byId('baseDedTotal');
-      const dedEl = byId('dedTotal');
-      const netEl = byId('netTotal');
-      if (!baseEl || !dedEl || !netEl) return;
-
-      // Το v44 υπολογίζει πρώτα τα σωστά σύνολα χωρίς το δικαίωμα εγγραφής.
-      // Αφαιρούμε τυχόν προηγούμενη προσθήκη πριν ξαναπροσθέσουμε τη νέα.
-      const previous = num(baseEl.dataset.mtpyEntry || 0);
-      const baseWithoutEntry = Math.max(0, num(baseEl.textContent) - previous);
-      baseEl.dataset.mtpyEntry = String(entry);
-      baseEl.textContent = money(baseWithoutEntry + entry);
-      const currentDed = num(dedEl.textContent);
-      const dedWithoutEntry = Math.max(0, currentDed - previous);
-      dedEl.textContent = money(dedWithoutEntry + entry);
-      const gross = num(byId('grossTotal')?.textContent);
-      netEl.textContent = money(gross - (dedWithoutEntry + entry));
-
-      const slipBase = byId('slipBaseDed');
-      const slipDed = byId('slipDed');
-      const slipNet = byId('slipNet');
-      if (slipBase && slipDed && slipNet) {
-        const slipPrev = num(slipBase.dataset.mtpyEntry || 0);
-        const slipBaseWithout = Math.max(0, num(slipBase.textContent) - slipPrev);
-        slipBase.dataset.mtpyEntry = String(entry);
-        slipBase.textContent = money(slipBaseWithout + entry);
-        const slipDedWithout = Math.max(0, num(slipDed.textContent) - slipPrev);
-        slipDed.textContent = money(slipDedWithout + entry);
-        slipNet.textContent = money(gross - (slipDedWithout + entry));
-      }
-    }
-
-    function apply() {
-      updateServiceInfo();
-      updateMTPYEntry();
-      // Τα σύνολα υπολογίζονται ήδη από το app.js μαζί με το δικαίωμα εγγραφής ΜΤΠΥ.
-      // Δεν ξαναπροσθέτουμε την κράτηση εδώ, για να μην μηδενίζεται/διπλομετρείται το σύνολο.
-    }
-
-    window.addEventListener('load', () => {
-      document.addEventListener('input', () => setTimeout(apply, 20), true);
-      document.addEventListener('change', () => setTimeout(apply, 20), true);
-      document.addEventListener('click', () => setTimeout(apply, 30), true);
-      setTimeout(apply, 100);
-    });
-  })();
-  </script>
+  
 
   <script>
     window.addEventListener('load', async () => {
