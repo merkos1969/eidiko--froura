@@ -42,11 +42,23 @@
           <select id="family">
             <option value="single" selected>Άγαμος</option>
             <option value="married">Έγγαμος</option>
+            <option value="divorced">Διαζευγμένος</option>
           </select>
         </div>
         <div class="field">
-          <label>Τέκνα</label>
+          <label>Τέκνα οικογενειακού επιδόματος</label>
           <select id="kids">
+            <option value="0" selected>0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5+</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Εξαρτώμενα τέκνα (φορολογία)</label>
+          <select id="dependents">
             <option value="0" selected>0</option>
             <option value="1">1</option>
             <option value="2">2</option>
@@ -74,10 +86,6 @@
         <div class="field">
           <label>Βαθμολογικός χρόνος</label>
           <input id="gradeYears" type="text" readonly value="-">
-        </div>
-        <div class="field">
-          <label>Βαθμός</label>
-          <input id="gradeRank" type="text" readonly value="-">
         </div>
         <div class="field">
           <label>Μισθολογικός χρόνος</label>
@@ -121,6 +129,10 @@
               <option value="yes">ΝΑΙ</option>
             </select>
           </div>
+          <div class="field">
+            <label>Προσωπική διαφορά</label>
+            <input id="personalDiff" type="number" step="0.01" placeholder="€">
+          </div>
         </div>
 
         <div class="grid2">
@@ -135,7 +147,7 @@
         </div>
         <div class="miniCalc">
           Μικτό: <b><span id="fiveGross">0,00</span> €</b><br>
-          Κρατήσεις 4% (2% + 2%): <b><span id="fiveDed">0,00</span> €</b><br>
+          Κρατήσεις: <b><span id="fiveDed">0,00</span> €</b><br>
           Φόρος 20%: <b><span id="fiveTax">0,00</span> €</b><br>
           Καθαρό: <b><span id="fiveNet">0,00</span> €</b>
         </div>
@@ -152,7 +164,7 @@
         </div>
         <div class="miniCalc">
           Μικτό: <b><span id="nightGross">0,00</span> €</b><br>
-          Κρατήσεις 4% (2% + 2%): <b><span id="nightDed">0,00</span> €</b><br>
+          Κρατήσεις: <b><span id="nightDed">0,00</span> €</b><br>
           Φόρος 20%: <b><span id="nightTax">0,00</span> €</b><br>
           Καθαρό: <b><span id="nightNet">0,00</span> €</b>
         </div>
@@ -275,6 +287,7 @@
         <div class="line"><span>Επίδομα ιδιαίτερων καθηκόντων</span><b><span id="slipDuty">0,00</span> €</b></div>
         <div class="line"><span>Επίδομα τέκνων</span><b><span id="slipChild">0,00</span> €</b></div>
         <div class="line"><span>Παραμεθόριος</span><b><span id="slipBorder">0,00</span> €</b></div>
+        <div class="line"><span>Προσωπική διαφορά</span><b><span id="slipPersonal">0,00</span> €</b></div>
         <div class="total total-green">
           <span>ΣΥΝΟΛΟ ΑΠΟΔΟΧΩΝ</span>
           <b><span id="slipGross">0,00</span> €</b>
@@ -328,8 +341,8 @@
     </footer>
   </div>
 
-  <script src="./data.js?v=47"></script>
-  <script src="./app.js?v=47"></script>
+  <script src="./data.js?v=48"></script>
+  <script src="./app.js?v=48"></script>
 
   <script>
   /* v44 — Διόρθωση φορολογίας νυχτερινών / πενθημέρων
@@ -414,7 +427,6 @@
         const baseDeductions =
           readText('tpdyAmt') +
           readText('mtpyAmt') +
-          readText('mtpyEntryAmt') +
           readText('teadyAmt') +
           readText('healthAmt') +
           readText('efkaAmt') +
@@ -473,7 +485,118 @@
   })();
   </script>
 
-  
+  <script>
+  /* v46 — Ξεχωριστή μισθολογική / βαθμολογική υπηρεσία + δικαίωμα εγγραφής ΜΤΠΥ από μικτές τακτικές αποδοχές */
+  (() => {
+    const byId = (id) => document.getElementById(id);
+    const num = (value) => {
+      if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+      const n = parseFloat(String(value ?? '').replace(/\./g, '').replace(',', '.'));
+      return Number.isFinite(n) ? n : 0;
+    };
+    const money = (v) => Number(v || 0).toLocaleString('el-GR', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+    function monthsBetween(a, b) {
+      if (!a || !b) return 0;
+      const x = new Date(a + 'T00:00:00');
+      const y = new Date(b + 'T00:00:00');
+      if (isNaN(x) || isNaN(y) || y < x) return 0;
+      let m = (y.getFullYear() - x.getFullYear()) * 12 + (y.getMonth() - x.getMonth());
+      if (y.getDate() < x.getDate()) m--;
+      return Math.max(0, m);
+    }
+
+    function yearsText(months) {
+      const y = Math.floor(months / 12);
+      const m = months % 12;
+      return y + ' έτη' + (m ? ' ' + m + ' μήνες' : '');
+    }
+
+    function updateServiceInfo() {
+      const hire = byId('hireDate')?.value;
+      const calc = byId('calcDate')?.value || new Date().toISOString().slice(0,10);
+      const pre = Math.max(0, Math.floor(num(byId('preServiceMonths')?.value)));
+      const gradeMonths = monthsBetween(hire, calc);
+      const salaryMonths = gradeMonths + pre;
+      if (byId('gradeYears')) byId('gradeYears').value = yearsText(gradeMonths);
+      if (byId('salaryYears')) byId('salaryYears').value = yearsText(salaryMonths);
+    }
+
+    function updateMTPYEntry() {
+      const hire = byId('hireDate')?.value;
+      const calc = byId('calcDate')?.value || new Date().toISOString().slice(0,10);
+      const months = monthsBetween(hire, calc);
+      const active = months >= 0 && months < 12;
+      // Δικαίωμα εγγραφής ΜΤΠΥ: ένας μηνιαίος μισθός ακαθάριστων
+      // αποδοχών του πρώτου πλήρους μήνα, σε 12 ισόποσες δόσεις.
+      // Στην εφαρμογή η βάση είναι οι τακτικές μικτές αποδοχές:
+      // βασικός + επίδομα ιδιαίτερων καθηκόντων + τέκνα + παραμεθόριος + προσωπική διαφορά.
+      // Νυχτερινά και πενθήμερα δεν προστίθενται στη βάση αυτή.
+      const base = num(byId('basePay')?.textContent);
+      const duty = num(byId('dutyPay')?.textContent);
+      const child = num(byId('childPay')?.textContent);
+      const border = byId('borderYes')?.value === 'yes' ? 130 : 0;
+      const personal = num(byId('personalDiff')?.value);
+      const firstMonthGross = base + duty + child + border + personal;
+      const amount = active ? firstMonthGross / 12 : 0;
+      const row = byId('mtpyEntryRow');
+      const slipRow = byId('slipMtpyEntryRow');
+      if (row) row.style.display = active ? '' : 'none';
+      if (slipRow) slipRow.style.display = active ? '' : 'none';
+      if (byId('mtpyEntryAmt')) byId('mtpyEntryAmt').textContent = money(amount);
+      if (byId('slipMtpyEntry')) byId('slipMtpyEntry').textContent = money(amount);
+    }
+
+    function applyMTPYEntryToTotals() {
+      const row = byId('mtpyEntryRow');
+      if (!row) return;
+      const active = row.style.display !== 'none';
+      const entry = active ? num(byId('mtpyEntryAmt')?.textContent) : 0;
+      const baseEl = byId('baseDedTotal');
+      const dedEl = byId('dedTotal');
+      const netEl = byId('netTotal');
+      if (!baseEl || !dedEl || !netEl) return;
+
+      // Το v44 υπολογίζει πρώτα τα σωστά σύνολα χωρίς το δικαίωμα εγγραφής.
+      // Αφαιρούμε τυχόν προηγούμενη προσθήκη πριν ξαναπροσθέσουμε τη νέα.
+      const previous = num(baseEl.dataset.mtpyEntry || 0);
+      const baseWithoutEntry = Math.max(0, num(baseEl.textContent) - previous);
+      baseEl.dataset.mtpyEntry = String(entry);
+      baseEl.textContent = money(baseWithoutEntry + entry);
+      const currentDed = num(dedEl.textContent);
+      const dedWithoutEntry = Math.max(0, currentDed - previous);
+      dedEl.textContent = money(dedWithoutEntry + entry);
+      const gross = num(byId('grossTotal')?.textContent);
+      netEl.textContent = money(gross - (dedWithoutEntry + entry));
+
+      const slipBase = byId('slipBaseDed');
+      const slipDed = byId('slipDed');
+      const slipNet = byId('slipNet');
+      if (slipBase && slipDed && slipNet) {
+        const slipPrev = num(slipBase.dataset.mtpyEntry || 0);
+        const slipBaseWithout = Math.max(0, num(slipBase.textContent) - slipPrev);
+        slipBase.dataset.mtpyEntry = String(entry);
+        slipBase.textContent = money(slipBaseWithout + entry);
+        const slipDedWithout = Math.max(0, num(slipDed.textContent) - slipPrev);
+        slipDed.textContent = money(slipDedWithout + entry);
+        slipNet.textContent = money(gross - (slipDedWithout + entry));
+      }
+    }
+
+    function apply() {
+      updateServiceInfo();
+      updateMTPYEntry();
+      applyMTPYEntryToTotals();
+    }
+
+    window.addEventListener('load', () => {
+      document.addEventListener('input', () => setTimeout(apply, 20), true);
+      document.addEventListener('change', () => setTimeout(apply, 20), true);
+      document.addEventListener('click', () => setTimeout(apply, 30), true);
+      setTimeout(apply, 100);
+    });
+  })();
+  </script>
 
   <script>
     window.addEventListener('load', async () => {
