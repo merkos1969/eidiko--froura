@@ -169,8 +169,6 @@
     const child = Number(rec.child || 0);
 
     const border = $('borderYes').value === 'yes' ? 130 : 0;
-    const personal = Number($('personalDiff').value || 0);
-
     const fiveCount = Number($('fiveDaysCount').value || 0);
     const fiveRate = Number($('fiveDaysRate').value || 46);
     const nightCount = Number($('nightCount').value || 0);
@@ -201,12 +199,12 @@
     $('nightTax').textContent = fmt(nightTax);
     $('nightNet').textContent = fmt(nightNet);
 
-    const gross = base + duty + child + border + personal + fiveGross + nightGross;
+    const gross = base + duty + child + border + fiveGross + nightGross;
     $('grossTotal').textContent = fmt(gross);
 
     
 
-const regular = base + duty + child + border + personal;
+const regular = base + duty + child + border;
 
 const insuranceType = $('insurance').value;
 
@@ -219,7 +217,7 @@ let mtpy = 0;
 if (insuranceType === 'post93') {
   mtpy = regular * 0.045;
 } else {
-  mtpy = base * 0.045 + (duty + child + border + personal) * 0.01;
+  mtpy = base * 0.045 + (duty + child + border) * 0.01;
 }
 
 // Νεοδιορισμένος: για τους πρώτους 12 μήνες, επιπλέον
@@ -235,7 +233,7 @@ const hireSalaryYears = hirePreServiceMonths / 12;
 const hireSalaryRec = stepForYears(hireSalaryYears);
 const hireSalaryStepKey = hireSalaryRec ? hireSalaryRec.step : null;
 const hireRec = (hireSalaryStepKey && window.PAY_TABLE.byStep && window.PAY_TABLE.byStep[String(hireSalaryStepKey)] && window.PAY_TABLE.byStep[String(hireSalaryStepKey)][cat]) || {base:0,duty:0,child:0,total:0};
-const mtpyEntryBase = Number(hireRec.base || 0) + Number(hireRec.duty || 0) + Number(hireRec.child || 0) + border + personal;
+const mtpyEntryBase = Number(hireRec.base || 0) + Number(hireRec.duty || 0) + Number(hireRec.child || 0) + border;
 const mtpyEntry = mtpyEntryActive ? (mtpyEntryBase / 12) : 0;
 
 const teady = regular * 0.03;
@@ -279,7 +277,6 @@ if ($('slipBase')) $('slipBase').textContent = fmt(base);
 if ($('slipDuty')) $('slipDuty').textContent = fmt(duty);
 if ($('slipChild')) $('slipChild').textContent = fmt(child);
 if ($('slipBorder')) $('slipBorder').textContent = fmt(border);
-if ($('slipPersonal')) $('slipPersonal').textContent = fmt(personal);
 if ($('slipGross')) $('slipGross').textContent = fmt(regular);
 
 if ($('slipTpdy')) $('slipTpdy').textContent = fmt(tpdy);
@@ -498,7 +495,6 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
         hireDate: $('hireDate').value,
         preServiceMonths: $('preServiceMonths') ? $('preServiceMonths').value : '0',
         borderYes: $('borderYes').value,
-        personalDiff: $('personalDiff').value,
         fiveDaysCount: $('fiveDaysCount').value,
         fiveDaysRate: $('fiveDaysRate').value,
         nightCount: $('nightCount').value,
@@ -529,7 +525,6 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
       if (s.hireDate) $('hireDate').value = s.hireDate;
       if (s.preServiceMonths != null && $('preServiceMonths')) $('preServiceMonths').value = s.preServiceMonths;
       if (s.borderYes != null) $('borderYes').value = s.borderYes;
-      if (s.personalDiff != null) $('personalDiff').value = s.personalDiff;
       if (s.fiveDaysCount != null) $('fiveDaysCount').value = s.fiveDaysCount;
       if (s.fiveDaysRate != null) $('fiveDaysRate').value = s.fiveDaysRate;
       if (s.nightCount != null) $('nightCount').value = s.nightCount;

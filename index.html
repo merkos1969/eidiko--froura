@@ -121,10 +121,6 @@
               <option value="yes">ΝΑΙ</option>
             </select>
           </div>
-          <div class="field">
-            <label>Προσωπική διαφορά</label>
-            <input id="personalDiff" type="number" step="0.01" placeholder="€">
-          </div>
         </div>
 
         <div class="grid2">
@@ -279,7 +275,6 @@
         <div class="line"><span>Επίδομα ιδιαίτερων καθηκόντων</span><b><span id="slipDuty">0,00</span> €</b></div>
         <div class="line"><span>Επίδομα τέκνων</span><b><span id="slipChild">0,00</span> €</b></div>
         <div class="line"><span>Παραμεθόριος</span><b><span id="slipBorder">0,00</span> €</b></div>
-        <div class="line"><span>Προσωπική διαφορά</span><b><span id="slipPersonal">0,00</span> €</b></div>
         <div class="total total-green">
           <span>ΣΥΝΟΛΟ ΑΠΟΔΟΧΩΝ</span>
           <b><span id="slipGross">0,00</span> €</b>
@@ -560,8 +555,7 @@
       const duty = Number(rec.duty || 0);
       const child = Number(rec.child || 0);
       const border = byId('borderYes')?.value === 'yes' ? 130 : 0;
-      const personal = num(byId('personalDiff')?.value);
-      const mtpyEntryBase = base + duty + child + border + personal;
+      const mtpyEntryBase = base + duty + child + border;
       const amount = active ? mtpyEntryBase / 12 : 0;
       const row = byId('mtpyEntryRow');
       const slipRow = byId('slipMtpyEntryRow');
