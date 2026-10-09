@@ -32,6 +32,53 @@
 @media (max-width: 420px) { .insurance-choice-btn { font-size: 14px; } }
 </style>
 
+
+<style id="mobile-layout-fix">
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+  .page { width: 100%; max-width: 100%; min-width: 0; margin-left: auto; margin-right: auto; }
+  .panel, .panel-main, .panel-cal, section, .card { min-width: 0; max-width: 100%; }
+  .deduction-table-wrap { width: 100%; max-width: 100%; overflow-x: hidden; }
+  .deduction-table {
+    width: 100%;
+    min-width: 0 !important;
+    table-layout: fixed;
+    font-size: clamp(10px, 2.65vw, 14px);
+  }
+  .deduction-table th, .deduction-table td {
+    padding: 9px 4px !important;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+  .deduction-table th:first-child, .deduction-table td:first-child { width: 43%; }
+  .deduction-table th:nth-child(2), .deduction-table td:nth-child(2),
+  .deduction-table th:nth-child(3), .deduction-table td:nth-child(3) { width: 28.5%; }
+  .insurance-choice { width: 100%; max-width: 100%; }
+  .total {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 12px 14px;
+  }
+  .total > span { flex: 1 1 180px; min-width: 0; overflow-wrap: anywhere; }
+  .total > b { flex: 0 1 auto; max-width: 100%; white-space: nowrap; margin-left: auto; }
+  .line { min-width: 0; max-width: 100%; }
+  .line > span { min-width: 0; overflow-wrap: anywhere; }
+  .line > b { flex-shrink: 0; white-space: nowrap; }
+  @media (max-width: 420px) {
+    .deduction-table { font-size: 10.5px; }
+    .deduction-table th, .deduction-table td { padding: 8px 3px !important; }
+    .total { gap: 6px; padding: 10px; }
+    .total > span { flex-basis: 150px; }
+  }
+</style>
+
 </head>
 <body>
   <div class="page">
@@ -209,13 +256,7 @@
       <input id="taxMonthlyOut" type="text" readonly value="0,00">
     </div>
   </div>
-
-  <div class="miniCalc">
-    Βασικές κρατήσεις κύριου μισθού:<br>
-    ΤΠΔΥ 4% • ΜΤΠΥ (πριν/μετά 1993) • ΤΕΑΔΥ 3% • Υγειονομική 2,05% • ΕΦΚΑ 6,67% • Ανεργία 2% • ΠΟΥΕΦ 4€
-  </div>
-
-  <div class="deduction-table-wrap">
+<div class="deduction-table-wrap">
     
 <div class="insurance-choice" role="group" aria-label="Επιλογή ασφαλιστικού καθεστώτος">
   <div class="insurance-choice-title">Ασφαλιστικό καθεστώς</div>
