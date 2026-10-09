@@ -296,7 +296,10 @@
   <div class="line"><span>Εισφορά ΠΟΥΕΦ</span><b><span id="poyefAmt">4,00</span> €</b></div>
   <div class="line"><span>Αναγνώριση 5ετίας</span><b><span id="fiveYearsDed">0,00</span> €</b></div>
   <div class="line"><span>Λοιπές κρατήσεις</span><b><span id="otherAmt">0,00</span> €</b></div>
-  <div class="line"><span>Φόρος κύριου μισθού</span><b><span id="taxAmt">0,00</span> €</b></div>
+  <div class="line"><span>Φόρος κύριου μισθού (ΦΜΥ)</span><b><span id="taxAmt">0,00</span> €</b></div>
+  <div class="line"><span>Φόρος πενθημέρων (20%)</span><b><span id="taxFiveBreakdown">0,00</span> €</b></div>
+  <div class="line"><span>Φόρος νυχτερινών (20%)</span><b><span id="taxNightBreakdown">0,00</span> €</b></div>
+  <div class="line"><span><strong>ΣΥΝΟΛΟ ΦΟΡΟΥ ΜΗΝΑ</strong></span><b><strong><span id="taxMonthTotal">0,00</span> €</strong></b></div>
 
   <div class="line"><span>Σύνολο κρατήσεων κύριου μισθού</span><b><span id="baseDedTotal">0,00</span> €</b></div>
   <div class="line"><span>Κρατήσεις + φόρος νυχτών/5ημέρων</span><b><span id="extrasDedTotal">0,00</span> €</b></div>
@@ -586,7 +589,7 @@ window.PAY_TABLE = {"ranges":[{"step":"1 (ΦΡΟΥΡΟΣ)","from":0.0,"to":3.0,"
     $('childPay').textContent = fmt(child);
     if ($('borderPay')) $('borderPay').textContent = fmt(border);
 
-    const fiveDed = fiveGross * 0.02;
+    const fiveDed = fiveGross * 0.04; // 2% εισφορά ανεργίας + 2% ΜΤΠΥ, σύμφωνα με το εκκαθαριστικό
     const fiveTax = (fiveGross - fiveDed) * 0.20;
     const fiveNet = fiveGross - fiveDed - fiveTax;
 
@@ -643,7 +646,10 @@ const unemp = unempBaseAmt + unempAllowAmt;
 const fiveYears = $('fiveYearsOn').value === 'yes' ? Number($('fiveYearsAmount').value || 39.87) : 0;
 const other = Number($('otherFixed').value || 0);
 
-const monthlyTaxable = Math.max(0, gross - tpdy - mtpy - teady - health - efka - unemp - fiveYears - other);
+// Ο τακτικός ΦΜΥ υπολογίζεται μόνο στις τακτικές μηνιαίες αποδοχές.
+    // Νυχτερινά και πενθήμερα έχουν ξεχωριστή παρακράτηση παρακάτω και δεν
+    // πρέπει να προστίθενται ξανά στη βάση του κύριου μισθού.
+    const monthlyTaxable = Math.max(0, regular - tpdy - mtpy - teady - health - efka - unemp - fiveYears - other);
 const annualTaxable = monthlyTaxable * 12;
 const dependents = Number($('dependents')?.value || 0);
 const taxInfo = progressiveTax(annualTaxable, dependents);
@@ -654,6 +660,9 @@ $('taxCreditOut').value = fmt(taxInfo.credit);
 const monthlyTax = taxInfo.finalTax / 12;
 $('taxAmt').textContent = fmt(monthlyTax);
 $('taxMonthlyOut').value = fmt(monthlyTax);
+if ($('taxFiveBreakdown')) $('taxFiveBreakdown').textContent = fmt(fiveTax);
+if ($('taxNightBreakdown')) $('taxNightBreakdown').textContent = fmt(nightTax);
+if ($('taxMonthTotal')) $('taxMonthTotal').textContent = fmt(monthlyTax + fiveTax + nightTax);
 
 if ($('tpdyAmt')) $('tpdyAmt').textContent = fmt(tpdy);
 if ($('mtpyAmt')) $('mtpyAmt').textContent = fmt(mtpy);
@@ -1095,6 +1104,9 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
 
         // Εμφάνιση σωστού φόρου και τελικών ποσών.
         setText('taxAmt', baseTax);
+        setText('taxFiveBreakdown', readText('fiveTax'));
+        setText('taxNightBreakdown', readText('nightTax'));
+        setText('taxMonthTotal', baseTax + readText('fiveTax') + readText('nightTax'));
         setText('poyefAmt', POYEF);
         setValue('taxMonthlyOut', baseTax);
         setText('baseDedTotal', baseDeductionsTotal);
@@ -1198,37 +1210,65 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
     function applyMTPYEntryToTotals() {
       const row = byId('mtpyEntryRow');
       if (!row) return;
-      const active = row.style.display !== 'none';
-      const entry = active ? num(byId('mtpyEntryAmt')?.textContent) : 0;
-      const baseEl = byId('baseDedTotal');
-      const dedEl = byId('dedTotal');
-      const netEl = byId('netTotal');
-      if (!baseEl || !dedEl || !netEl) return;
 
-      // Το v44 υπολογίζει πρώτα τα σωστά σύνολα χωρίς το δικαίωμα εγγραφής.
-      // Αφαιρούμε τυχόν προηγούμενη προσθήκη πριν ξαναπροσθέσουμε τη νέα.
-      const previous = num(baseEl.dataset.mtpyEntry || 0);
-      const baseWithoutEntry = Math.max(0, num(baseEl.textContent) - previous);
-      baseEl.dataset.mtpyEntry = String(entry);
-      baseEl.textContent = money(baseWithoutEntry + entry);
-      const currentDed = num(dedEl.textContent);
-      const dedWithoutEntry = Math.max(0, currentDed - previous);
-      dedEl.textContent = money(dedWithoutEntry + entry);
+      // Υπολογίζουμε τα σύνολα απευθείας από τις επιμέρους κρατήσεις,
+      // όχι προσθέτοντας την κράτηση ΜΤΠΥ πάνω σε ήδη υπολογισμένα σύνολα.
+      const entry = row.style.display !== 'none'
+        ? num(byId('mtpyEntryAmt')?.textContent)
+        : 0;
+
+      const baseInsurance =
+        num(byId('tpdyAmt')?.textContent) +
+        num(byId('mtpyAmt')?.textContent) +
+        num(byId('teadyAmt')?.textContent) +
+        num(byId('healthAmt')?.textContent) +
+        num(byId('efkaAmt')?.textContent) +
+        num(byId('unempAmt')?.textContent) +
+        num(byId('fiveYearsDed')?.textContent) +
+        num(byId('otherAmt')?.textContent);
+
+      const poyef = num(byId('poyefAmt')?.textContent);
+      const mainTax = num(byId('taxAmt')?.textContent);
+      const baseTotal = baseInsurance + entry + poyef + mainTax;
+
+      const extrasTotal =
+        num(byId('fiveDed')?.textContent) +
+        num(byId('fiveTax')?.textContent) +
+        num(byId('nightDed')?.textContent) +
+        num(byId('nightTax')?.textContent);
+
+      const allDeductions = baseTotal + extrasTotal;
       const gross = num(byId('grossTotal')?.textContent);
-      netEl.textContent = money(gross - (dedWithoutEntry + entry));
+      const net = gross - allDeductions;
+
+      const put = (id, value) => {
+        const el = byId(id);
+        if (el) el.textContent = money(value);
+      };
+      put('baseDedTotal', baseTotal);
+      put('extrasDedTotal', extrasTotal);
+      put('dedTotal', allDeductions);
+      put('netTotal', net);
+
+      // Συνολικός φόρος = ΦΜΥ κύριου μισθού + φόρος πενθημέρων + φόρος νυχτερινών.
+      put('taxMonthTotal',
+        mainTax +
+        num(byId('fiveTax')?.textContent) +
+        num(byId('nightTax')?.textContent)
+      );
 
       const slipBase = byId('slipBaseDed');
+      const slipExtras = byId('slipExtrasDed');
       const slipDed = byId('slipDed');
       const slipNet = byId('slipNet');
-      if (slipBase && slipDed && slipNet) {
-        const slipPrev = num(slipBase.dataset.mtpyEntry || 0);
-        const slipBaseWithout = Math.max(0, num(slipBase.textContent) - slipPrev);
-        slipBase.dataset.mtpyEntry = String(entry);
-        slipBase.textContent = money(slipBaseWithout + entry);
-        const slipDedWithout = Math.max(0, num(slipDed.textContent) - slipPrev);
-        slipDed.textContent = money(slipDedWithout + entry);
-        slipNet.textContent = money(gross - (slipDedWithout + entry));
-      }
+      if (slipBase) slipBase.textContent = money(baseTotal);
+      if (slipExtras) slipExtras.textContent = money(extrasTotal);
+      if (slipDed) slipDed.textContent = money(allDeductions);
+      if (slipNet) slipNet.textContent = money(net);
+      const slipTax = byId('slipTax');
+      if (slipTax) slipTax.textContent = money(mainTax);
+      const slipPoyef = byId('slipPoyef');
+      if (slipPoyef) slipPoyef.textContent = money(poyef);
     }
 
     function apply() {
