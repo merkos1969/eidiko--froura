@@ -184,10 +184,11 @@
         <div class="line"><span>Βασικός μισθός</span><b><span id="basePay">0,00</span> €</b></div>
         <div class="line"><span>Επίδομα ιδιαίτερων καθηκόντων</span><b><span id="dutyPay">0,00</span> €</b></div>
         <div class="line"><span>Επίδομα τέκνων</span><b><span id="childPay">0,00</span> €</b></div>
+        <div class="line"><span>Επίδομα παραμεθορίου</span><b><span id="borderPay">0,00</span> €</b></div>
 
         <div class="grid2">
           <div class="field">
-            <label>Παραμεθόριος</label>
+            <label>Παραμεθόριος (+130 € / μήνα)</label>
             <select id="borderYes">
               <option value="no" selected>ΟΧΙ</option>
               <option value="yes">ΝΑΙ</option>
@@ -285,12 +286,13 @@
   <div style="display:none" aria-hidden="true">
   <div class="line"><span>ΤΠΔΥ (4%)</span><b><span id="tpdyAmt">0,00</span> €</b></div>
   <div class="line"><span>ΜΤΠΥ</span><b><span id="mtpyAmt">0,00</span> €</b></div>
-  <div class="line" id="mtpyEntryRow" style="display:none"><span>Δικαίωμα εγγραφής ΜΤΠΥ (1/12)</span><b><span id="mtpyEntryAmt">0,00</span> €</b></div>
+  
   <div class="line"><span>ΤΕΑΔΥ (3%)</span><b><span id="teadyAmt">0,00</span> €</b></div>
   <div class="line"><span>Υγειονομική (2,05%)</span><b><span id="healthAmt">0,00</span> €</b></div>
   <div class="line"><span>ΕΦΚΑ σύνταξη (6,67%)</span><b><span id="efkaAmt">0,00</span> €</b></div>
   <div class="line"><span>Ανεργία (2%)</span><b><span id="unempAmt">0,00</span> €</b></div>
   </div>
+  <div class="line" id="mtpyEntryRow" style="display:none"><span>Κράτηση νεοδιόριστου υπέρ ΜΤΠΥ (1ο έτος)</span><b><span id="mtpyEntryAmt">0,00</span> €</b></div>
   <div class="line"><span>Εισφορά ΠΟΥΕΦ</span><b><span id="poyefAmt">4,00</span> €</b></div>
   <div class="line"><span>Αναγνώριση 5ετίας</span><b><span id="fiveYearsDed">0,00</span> €</b></div>
   <div class="line"><span>Λοιπές κρατήσεις</span><b><span id="otherAmt">0,00</span> €</b></div>
@@ -582,6 +584,7 @@ window.PAY_TABLE = {"ranges":[{"step":"1 (ΦΡΟΥΡΟΣ)","from":0.0,"to":3.0,"
     $('basePay').textContent = fmt(base);
     $('dutyPay').textContent = fmt(duty);
     $('childPay').textContent = fmt(child);
+    if ($('borderPay')) $('borderPay').textContent = fmt(border);
 
     const fiveDed = fiveGross * 0.02;
     const fiveTax = (fiveGross - fiveDed) * 0.20;
@@ -1173,7 +1176,7 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
       const calc = byId('calcDate')?.value || new Date().toISOString().slice(0,10);
       const months = monthsBetween(hire, calc);
       const active = months >= 0 && months < 12;
-      // Δικαίωμα εγγραφής ΜΤΠΥ: ένας μηνιαίος μισθός ακαθάριστων
+      // Κράτηση νεοδιόριστου υπέρ ΜΤΠΥ: ένας μηνιαίος μισθός ακαθάριστων
       // αποδοχών του πρώτου πλήρους μήνα, σε 12 ισόποσες δόσεις.
       // Στην εφαρμογή η βάση είναι οι τακτικές μικτές αποδοχές:
       // βασικός + επίδομα ιδιαίτερων καθηκόντων + τέκνα + παραμεθόριος.
