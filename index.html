@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Μισθολόγιο Εξωτερικής Φρούρησης</title>
-  <link rel="stylesheet" href="https://merkos1969.github.io/eidiko--froura/style.css?v=43">
+  <link rel="stylesheet" href="https://merkos1969.github.io/eidiko--froura/style.css?v=44">
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#04122a">
   <meta name="mobile-web-app-capable" content="yes">
@@ -13,6 +13,25 @@
   <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
   <link rel="apple-touch-icon" href="./icon-192.png">
+  <style>
+    .deduction-table-wrap{width:100%;overflow-x:auto;margin:14px 0;border-radius:12px}
+    .deduction-table{width:100%;border-collapse:collapse;min-width:420px;background:#050505;color:#f5f7fa;font-size:clamp(12px,2.7vw,16px)}
+    .deduction-table th,.deduction-table td{padding:12px 9px;border-bottom:1px solid #292929;text-align:right;vertical-align:middle}
+    .deduction-table th:first-child,.deduction-table td:first-child{text-align:left;width:44%}
+    .deduction-table thead th{font-weight:800;color:#fff;background:#111}
+    .deduction-table .deduction-total-row td{font-weight:800;border-top:2px solid #1d5130;background:#102d1d}
+    @media(max-width:480px){.deduction-table th,.deduction-table td{padding:10px 6px}.deduction-table th:first-child,.deduction-table td:first-child{width:42%}}
+  </style>
+
+<style>
+.insurance-choice { margin: 12px 0 10px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 12px; background: #f8fafc; }
+.insurance-choice-title { font-weight: 800; margin: 0 0 10px; color: #263244; }
+.insurance-choice-buttons { display: flex; gap: 8px; }
+.insurance-choice-btn { flex: 1; min-height: 44px; padding: 10px 8px; border: 2px solid #b9c2cc; border-radius: 10px; background: #fff; color: #273244; font: inherit; font-weight: 700; cursor: pointer; }
+.insurance-choice-btn[aria-pressed="true"] { background: #174b2d; border-color: #174b2d; color: #fff; box-shadow: 0 2px 7px #174b2d33; }
+@media (max-width: 420px) { .insurance-choice-btn { font-size: 14px; } }
+</style>
+
 </head>
 <body>
   <div class="page">
@@ -30,13 +49,7 @@
     <section class="panel panel-top">
       <h2>Στοιχεία</h2>
       <div class="grid2">
-        <div class="field">
-          <label>Ασφάλιση</label>
-          <select id="insurance">
-            <option value="pre93">Πριν από 01/01/1993</option>
-            <option value="post93" selected>Μετά από 01/01/1993</option>
-          </select>
-        </div>
+<select id="insurance" aria-hidden="true" tabindex="-1" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;"><option value="pre93">Πριν από 01/01/1993</option><option value="post93" selected>Μετά από 01/01/1993</option></select>
         <div class="field">
           <label>Οικογενειακή κατάσταση</label>
           <select id="family">
@@ -129,10 +142,6 @@
               <option value="yes">ΝΑΙ</option>
             </select>
           </div>
-          <div class="field">
-            <label>Προσωπική διαφορά</label>
-            <input id="personalDiff" type="number" step="0.01" placeholder="€">
-          </div>
         </div>
 
         <div class="grid2">
@@ -206,6 +215,29 @@
     ΤΠΔΥ 4% • ΜΤΠΥ (πριν/μετά 1993) • ΤΕΑΔΥ 3% • Υγειονομική 2,05% • ΕΦΚΑ 6,67% • Ανεργία 2% • ΠΟΥΕΦ 4€
   </div>
 
+  <div class="deduction-table-wrap">
+    
+<div class="insurance-choice" role="group" aria-label="Επιλογή ασφαλιστικού καθεστώτος">
+  <div class="insurance-choice-title">Ασφαλιστικό καθεστώς</div>
+  <div class="insurance-choice-buttons">
+    <button type="button" class="insurance-choice-btn" data-insurance="pre93" aria-pressed="false">Πριν το 1993</button>
+    <button type="button" class="insurance-choice-btn" data-insurance="post93" aria-pressed="true">Μετά το 1993</button>
+  </div>
+</div>
+<table class="deduction-table">
+      <thead><tr><th>Κράτηση</th><th>Βασικός μισθός</th><th>Επιδόματα</th></tr></thead>
+      <tbody>
+        <tr><td>ΤΠΔΥ 4%</td><td><span id="tpdyBase">0,00</span> €</td><td><span id="tpdyAllow">—</span></td></tr>
+        <tr><td>ΜΤΠΥ</td><td><span id="mtpyBase">0,00</span> €</td><td><span id="mtpyAllow">0,00</span> €</td></tr>
+        <tr><td>ΤΕΑΔΥ 3%</td><td><span id="teadyBase">0,00</span> €</td><td><span id="teadyAllow">—</span></td></tr>
+        <tr><td>Υγειονομική 2,05%</td><td><span id="healthBase">0,00</span> €</td><td><span id="healthAllow">0,00</span> €</td></tr>
+        <tr><td>ΕΦΚΑ σύνταξη 6,67%</td><td><span id="efkaBase">0,00</span> €</td><td><span id="efkaAllow">—</span></td></tr>
+        <tr><td>Ανεργία 2%</td><td><span id="unempBase">0,00</span> €</td><td><span id="unempAllow">0,00</span> €</td></tr>
+        <tr class="deduction-total-row"><td>Σύνολο</td><td><span id="dedBaseTotal">0,00</span> €</td><td><span id="dedAllowTotal">0,00</span> €</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="display:none" aria-hidden="true">
   <div class="line"><span>ΤΠΔΥ (4%)</span><b><span id="tpdyAmt">0,00</span> €</b></div>
   <div class="line"><span>ΜΤΠΥ</span><b><span id="mtpyAmt">0,00</span> €</b></div>
   <div class="line" id="mtpyEntryRow" style="display:none"><span>Δικαίωμα εγγραφής ΜΤΠΥ (1/12)</span><b><span id="mtpyEntryAmt">0,00</span> €</b></div>
@@ -213,6 +245,7 @@
   <div class="line"><span>Υγειονομική (2,05%)</span><b><span id="healthAmt">0,00</span> €</b></div>
   <div class="line"><span>ΕΦΚΑ σύνταξη (6,67%)</span><b><span id="efkaAmt">0,00</span> €</b></div>
   <div class="line"><span>Ανεργία (2%)</span><b><span id="unempAmt">0,00</span> €</b></div>
+  </div>
   <div class="line"><span>Εισφορά ΠΟΥΕΦ</span><b><span id="poyefAmt">4,00</span> €</b></div>
   <div class="line"><span>Αναγνώριση 5ετίας</span><b><span id="fiveYearsDed">0,00</span> €</b></div>
   <div class="line"><span>Λοιπές κρατήσεις</span><b><span id="otherAmt">0,00</span> €</b></div>
@@ -287,7 +320,6 @@
         <div class="line"><span>Επίδομα ιδιαίτερων καθηκόντων</span><b><span id="slipDuty">0,00</span> €</b></div>
         <div class="line"><span>Επίδομα τέκνων</span><b><span id="slipChild">0,00</span> €</b></div>
         <div class="line"><span>Παραμεθόριος</span><b><span id="slipBorder">0,00</span> €</b></div>
-        <div class="line"><span>Προσωπική διαφορά</span><b><span id="slipPersonal">0,00</span> €</b></div>
         <div class="total total-green">
           <span>ΣΥΝΟΛΟ ΑΠΟΔΟΧΩΝ</span>
           <b><span id="slipGross">0,00</span> €</b>
@@ -341,8 +373,575 @@
     </footer>
   </div>
 
-  <script src="./data.js?v=48"></script>
-  <script src="./app.js?v=48"></script>
+  <script>
+/* Embedded data.js */
+window.PAY_TABLE = {"ranges":[{"step":"1 (ΦΡΟΥΡΟΣ)","from":0.0,"to":3.0,"label":"0-3(ΦΡΟΥΡΟΣ)"},{"step":"2 (ΦΡΟΥΡΟΣ)","from":3.0,"to":5.0,"label":"3-5(ΦΡΟΥΡΟΣ)"},{"step":"3 (ΦΡΟΥΡΟΣ)","from":5.0,"to":7.0,"label":"5-7(ΦΡΟΥΡΟΣ)"},{"step":"4 (ΦΡΟΥΡΟΣ)","from":7.0,"to":9.0,"label":"7-9(ΦΡΟΥΡΟΣ)"},{"step":"5 (ΦΡΟΥΡΟΣ)","from":9.0,"to":10.0,"label":"9-10(ΦΡΟΥΡΟΣ)"},{"step":"5 (ΥΠΑΡΧ Β)","from":10.0,"to":11.0,"label":"10-11(ΥΠΑΡΧ Β)"},{"step":"6 (ΥΠΑΡΧ Β)","from":11.0,"to":13.0,"label":"11-13(ΥΠΑΡΧ Β)"},{"step":"7 (ΥΠΑΡΧ Β)","from":13.0,"to":15.0,"label":"13-15(ΥΠΑΡΧ Β)"},{"step":"8 (ΥΠΑΡΧ Β)","from":15.0,"to":17.0,"label":"15-17(ΥΠΑΡΧ Β)"},{"step":"9 (ΥΠΑΡΧ Β)","from":17.0,"to":19.0,"label":"17-19(ΥΠΑΡΧ Β)"},{"step":"10 (ΥΠΑΡΧ Β)","from":19.0,"to":20.0,"label":"19-20(ΥΠΑΡΧ Β)"},{"step":"10 (ΥΠΑΡΧ Α)","from":20.0,"to":21.0,"label":"20-21(ΥΠΑΡΧ Α)"},{"step":"11 (ΥΠΑΡΧ Α)","from":21.0,"to":23.0,"label":"21-23(ΥΠΑΡΧ Α)"},{"step":"12 (ΥΠΑΡΧ Α)","from":23.0,"to":25.0,"label":"23-25(ΥΠΑΡΧ Α)"},{"step":"13 (ΥΠΑΡΧ Α)","from":25.0,"to":27.0,"label":"25-27(ΥΠΑΡΧ Α)"},{"step":"14 (ΥΠΑΡΧ Α)","from":27.0,"to":28.0,"label":"27-28(ΥΠΑΡΧ Α)"},{"step":"14 (ΑΡΧΙΦΥΛΑΚΑΣ)","from":28.0,"to":29.0,"label":"28-29(ΑΡΧΙΦΥΛΑΚΑΣ)"},{"step":"15 (ΑΡΧΙΦΥΛΑΚΑΣ)","from":29.0,"to":31.0,"label":"29-31(ΑΡΧΙΦΥΛΑΚΑΣ)"},{"step":"16 (ΑΡΧΙΦΥΛΑΚΑΣ)","from":31.0,"to":33.0,"label":"31-33(ΑΡΧΙΦΥΛΑΚΑΣ)"},{"step":"17 (ΑΡΧΙΦΥΛΑΚΑΣ)","from":33.0,"to":35.0,"label":"33-35(ΑΡΧΙΦΥΛΑΚΑΣ)"},{"step":"18 (ΑΡΧΙΦΥΛΑΚΑΣ)","from":35.0,"to":37.0,"label":"35-37(ΑΡΧΙΦΥΛΑΚΑΣ)"},{"step":"19 (ΑΡΧΙΦΥΛΑΚΑΣ)","from":37.0,"to":39.0,"label":"37-39(ΑΡΧΙΦΥΛΑΚΑΣ)"},{"step":"20 (ΑΡΧΙΦΥΛΑΚΑΣ)","from":39.0,"to":999,"label":"39-40+(ΑΡΧΙΦΥΛΑΚΑΣ)"}],"byStep":{"1 (ΦΡΟΥΡΟΣ)":{"Άγαμος":{"base":1162.0,"duty":205.0,"child":0.0,"total":1367.0},"Έγγαμος χωρίς παιδιά":{"base":1162.0,"duty":275.0,"child":0.0,"total":1437.0},"1 παιδί":{"base":1162.0,"duty":335.0,"child":70.0,"total":1567.0},"2 παιδιά":{"base":1162.0,"duty":335.0,"child":120.0,"total":1617.0},"3 παιδιά":{"base":1162.0,"duty":335.0,"child":170.0,"total":1667.0},"4 παιδιά":{"base":1162.0,"duty":335.0,"child":220.0,"total":1717.0}},"2 (ΦΡΟΥΡΟΣ)":{"Άγαμος":{"base":1223.0,"duty":205.0,"child":0.0,"total":1428.0},"Έγγαμος χωρίς παιδιά":{"base":1223.0,"duty":275.0,"child":0.0,"total":1498.0},"1 παιδί":{"base":1223.0,"duty":335.0,"child":70.0,"total":1628.0},"2 παιδιά":{"base":1223.0,"duty":335.0,"child":120.0,"total":1678.0},"3 παιδιά":{"base":1223.0,"duty":335.0,"child":170.0,"total":1728.0},"4 παιδιά":{"base":1223.0,"duty":335.0,"child":220.0,"total":1778.0}},"3 (ΦΡΟΥΡΟΣ)":{"Άγαμος":{"base":1259.0,"duty":205.0,"child":0.0,"total":1464.0},"Έγγαμος χωρίς παιδιά":{"base":1259.0,"duty":275.0,"child":0.0,"total":1534.0},"1 παιδί":{"base":1259.0,"duty":335.0,"child":70.0,"total":1664.0},"2 παιδιά":{"base":1259.0,"duty":335.0,"child":120.0,"total":1714.0},"3 παιδιά":{"base":1259.0,"duty":335.0,"child":170.0,"total":1764.0},"4 παιδιά":{"base":1259.0,"duty":335.0,"child":220.0,"total":1814.0}},"4 (ΦΡΟΥΡΟΣ)":{"Άγαμος":{"base":1296.0,"duty":205.0,"child":0.0,"total":1501.0},"Έγγαμος χωρίς παιδιά":{"base":1296.0,"duty":275.0,"child":0.0,"total":1571.0},"1 παιδί":{"base":1296.0,"duty":335.0,"child":70.0,"total":1701.0},"2 παιδιά":{"base":1296.0,"duty":335.0,"child":120.0,"total":1751.0},"3 παιδιά":{"base":1296.0,"duty":335.0,"child":170.0,"total":1801.0},"4 παιδιά":{"base":1296.0,"duty":335.0,"child":220.0,"total":1851.0}},"5 (ΦΡΟΥΡΟΣ)":{"Άγαμος":{"base":1333.0,"duty":205.0,"child":0.0,"total":1538.0},"Έγγαμος χωρίς παιδιά":{"base":1333.0,"duty":275.0,"child":0.0,"total":1608.0},"1 παιδί":{"base":1333.0,"duty":335.0,"child":70.0,"total":1738.0},"2 παιδιά":{"base":1333.0,"duty":335.0,"child":120.0,"total":1788.0},"3 παιδιά":{"base":1333.0,"duty":335.0,"child":170.0,"total":1838.0},"4 παιδιά":{"base":1333.0,"duty":335.0,"child":220.0,"total":1888.0}},"5 (ΥΠΑΡΧ Β)":{"Άγαμος":{"base":1366.0,"duty":155.0,"child":0.0,"total":1521.0},"Έγγαμος χωρίς παιδιά":{"base":1366.0,"duty":225.0,"child":0.0,"total":1591.0},"1 παιδί":{"base":1366.0,"duty":285.0,"child":70.0,"total":1721.0},"2 παιδιά":{"base":1366.0,"duty":285.0,"child":120.0,"total":1771.0},"3 παιδιά":{"base":1366.0,"duty":285.0,"child":170.0,"total":1821.0},"4 παιδιά":{"base":1366.0,"duty":285.0,"child":220.0,"total":1871.0}},"6 (ΥΠΑΡΧ Β)":{"Άγαμος":{"base":1412.0,"duty":155.0,"child":0.0,"total":1567.0},"Έγγαμος χωρίς παιδιά":{"base":1412.0,"duty":225.0,"child":0.0,"total":1637.0},"1 παιδί":{"base":1412.0,"duty":285.0,"child":70.0,"total":1767.0},"2 παιδιά":{"base":1412.0,"duty":285.0,"child":120.0,"total":1817.0},"3 παιδιά":{"base":1412.0,"duty":285.0,"child":170.0,"total":1867.0},"4 παιδιά":{"base":1412.0,"duty":285.0,"child":220.0,"total":1917.0}},"7 (ΥΠΑΡΧ Β)":{"Άγαμος":{"base":1461.0,"duty":155.0,"child":0.0,"total":1616.0},"Έγγαμος χωρίς παιδιά":{"base":1461.0,"duty":225.0,"child":0.0,"total":1686.0},"1 παιδί":{"base":1461.0,"duty":285.0,"child":70.0,"total":1816.0},"2 παιδιά":{"base":1461.0,"duty":285.0,"child":120.0,"total":1866.0},"3 παιδιά":{"base":1461.0,"duty":285.0,"child":170.0,"total":1916.0},"4 παιδιά":{"base":1461.0,"duty":285.0,"child":220.0,"total":1966.0}},"8 (ΥΠΑΡΧ Β)":{"Άγαμος":{"base":1532.0,"duty":155.0,"child":0.0,"total":1687.0},"Έγγαμος χωρίς παιδιά":{"base":1532.0,"duty":225.0,"child":0.0,"total":1757.0},"1 παιδί":{"base":1532.0,"duty":285.0,"child":70.0,"total":1887.0},"2 παιδιά":{"base":1532.0,"duty":285.0,"child":120.0,"total":1937.0},"3 παιδιά":{"base":1532.0,"duty":285.0,"child":170.0,"total":1987.0},"4 παιδιά":{"base":1532.0,"duty":285.0,"child":220.0,"total":2037.0}},"9 (ΥΠΑΡΧ Β)":{"Άγαμος":{"base":1607.0,"duty":155.0,"child":0.0,"total":1762.0},"Έγγαμος χωρίς παιδιά":{"base":1607.0,"duty":225.0,"child":0.0,"total":1832.0},"1 παιδί":{"base":1607.0,"duty":285.0,"child":70.0,"total":1962.0},"2 παιδιά":{"base":1607.0,"duty":285.0,"child":120.0,"total":2012.0},"3 παιδιά":{"base":1607.0,"duty":285.0,"child":170.0,"total":2062.0},"4 παιδιά":{"base":1607.0,"duty":285.0,"child":220.0,"total":2112.0}},"10 (ΥΠΑΡΧ Β)":{"Άγαμος":{"base":1688.0,"duty":155.0,"child":0.0,"total":1843.0},"Έγγαμος χωρίς παιδιά":{"base":1688.0,"duty":225.0,"child":0.0,"total":1913.0},"1 παιδί":{"base":1688.0,"duty":285.0,"child":70.0,"total":2043.0},"2 παιδιά":{"base":1688.0,"duty":285.0,"child":120.0,"total":2093.0},"3 παιδιά":{"base":1688.0,"duty":285.0,"child":170.0,"total":2143.0},"4 παιδιά":{"base":1688.0,"duty":285.0,"child":220.0,"total":2193.0}},"10 (ΥΠΑΡΧ Α)":{"Άγαμος":{"base":1704.0,"duty":180.0,"child":0.0,"total":1884.0},"Έγγαμος χωρίς παιδιά":{"base":1704.0,"duty":250.0,"child":0.0,"total":1954.0},"1 παιδί":{"base":1704.0,"duty":310.0,"child":70.0,"total":2084.0},"2 παιδιά":{"base":1704.0,"duty":310.0,"child":120.0,"total":2134.0},"3 παιδιά":{"base":1704.0,"duty":310.0,"child":170.0,"total":2184.0},"4 παιδιά":{"base":1704.0,"duty":310.0,"child":220.0,"total":2234.0}},"11 (ΥΠΑΡΧ Α)":{"Άγαμος":{"base":1762.0,"duty":180.0,"child":0.0,"total":1942.0},"Έγγαμος χωρίς παιδιά":{"base":1762.0,"duty":250.0,"child":0.0,"total":2012.0},"1 παιδί":{"base":1762.0,"duty":310.0,"child":70.0,"total":2142.0},"2 παιδιά":{"base":1762.0,"duty":310.0,"child":120.0,"total":2192.0},"3 παιδιά":{"base":1762.0,"duty":310.0,"child":170.0,"total":2242.0},"4 παιδιά":{"base":1762.0,"duty":310.0,"child":220.0,"total":2292.0}},"12 (ΥΠΑΡΧ Α)":{"Άγαμος":{"base":1823.0,"duty":180.0,"child":0.0,"total":2003.0},"Έγγαμος χωρίς παιδιά":{"base":1823.0,"duty":250.0,"child":0.0,"total":2073.0},"1 παιδί":{"base":1823.0,"duty":310.0,"child":70.0,"total":2203.0},"2 παιδιά":{"base":1823.0,"duty":310.0,"child":120.0,"total":2253.0},"3 παιδιά":{"base":1823.0,"duty":310.0,"child":170.0,"total":2303.0},"4 παιδιά":{"base":1823.0,"duty":310.0,"child":220.0,"total":2353.0}},"13 (ΥΠΑΡΧ Α)":{"Άγαμος":{"base":1885.0,"duty":180.0,"child":0.0,"total":2065.0},"Έγγαμος χωρίς παιδιά":{"base":1885.0,"duty":250.0,"child":0.0,"total":2135.0},"1 παιδί":{"base":1885.0,"duty":310.0,"child":70.0,"total":2265.0},"2 παιδιά":{"base":1885.0,"duty":310.0,"child":120.0,"total":2315.0},"3 παιδιά":{"base":1885.0,"duty":310.0,"child":170.0,"total":2365.0},"4 παιδιά":{"base":1885.0,"duty":310.0,"child":220.0,"total":2415.0}},"14 (ΥΠΑΡΧ Α)":{"Άγαμος":{"base":1949.0,"duty":180.0,"child":0.0,"total":2129.0},"Έγγαμος χωρίς παιδιά":{"base":1949.0,"duty":250.0,"child":0.0,"total":2199.0},"1 παιδί":{"base":1949.0,"duty":310.0,"child":70.0,"total":2329.0},"2 παιδιά":{"base":1949.0,"duty":310.0,"child":120.0,"total":2379.0},"3 παιδιά":{"base":1949.0,"duty":310.0,"child":170.0,"total":2429.0},"4 παιδιά":{"base":1949.0,"duty":310.0,"child":220.0,"total":2479.0}},"14 (ΑΡΧΙΦΥΛΑΚΑΣ)":{"Άγαμος":{"base":2005.0,"duty":190.0,"child":0.0,"total":2195.0},"Έγγαμος χωρίς παιδιά":{"base":2005.0,"duty":260.0,"child":0.0,"total":2265.0},"1 παιδί":{"base":2005.0,"duty":320.0,"child":70.0,"total":2395.0},"2 παιδιά":{"base":2005.0,"duty":320.0,"child":120.0,"total":2445.0},"3 παιδιά":{"base":2005.0,"duty":320.0,"child":170.0,"total":2495.0},"4 παιδιά":{"base":2005.0,"duty":320.0,"child":220.0,"total":2545.0}},"15 (ΑΡΧΙΦΥΛΑΚΑΣ)":{"Άγαμος":{"base":2073.0,"duty":190.0,"child":0.0,"total":2263.0},"Έγγαμος χωρίς παιδιά":{"base":2073.0,"duty":260.0,"child":0.0,"total":2333.0},"1 παιδί":{"base":2073.0,"duty":320.0,"child":70.0,"total":2463.0},"2 παιδιά":{"base":2073.0,"duty":320.0,"child":120.0,"total":2513.0},"3 παιδιά":{"base":2073.0,"duty":320.0,"child":170.0,"total":2563.0},"4 παιδιά":{"base":2073.0,"duty":320.0,"child":220.0,"total":2613.0}},"16 (ΑΡΧΙΦΥΛΑΚΑΣ)":{"Άγαμος":{"base":2145.0,"duty":190.0,"child":0.0,"total":2335.0},"Έγγαμος χωρίς παιδιά":{"base":2145.0,"duty":260.0,"child":0.0,"total":2405.0},"1 παιδί":{"base":2145.0,"duty":320.0,"child":70.0,"total":2535.0},"2 παιδιά":{"base":2145.0,"duty":320.0,"child":120.0,"total":2585.0},"3 παιδιά":{"base":2145.0,"duty":320.0,"child":170.0,"total":2635.0},"4 παιδιά":{"base":2145.0,"duty":320.0,"child":220.0,"total":2685.0}},"17 (ΑΡΧΙΦΥΛΑΚΑΣ)":{"Άγαμος":{"base":2219.0,"duty":190.0,"child":0.0,"total":2409.0},"Έγγαμος χωρίς παιδιά":{"base":2219.0,"duty":260.0,"child":0.0,"total":2479.0},"1 παιδί":{"base":2219.0,"duty":320.0,"child":70.0,"total":2609.0},"2 παιδιά":{"base":2219.0,"duty":320.0,"child":120.0,"total":2659.0},"3 παιδιά":{"base":2219.0,"duty":320.0,"child":170.0,"total":2709.0},"4 παιδιά":{"base":2219.0,"duty":320.0,"child":220.0,"total":2759.0}},"18 (ΑΡΧΙΦΥΛΑΚΑΣ)":{"Άγαμος":{"base":2294.0,"duty":190.0,"child":0.0,"total":2484.0},"Έγγαμος χωρίς παιδιά":{"base":2294.0,"duty":260.0,"child":0.0,"total":2554.0},"1 παιδί":{"base":2294.0,"duty":320.0,"child":70.0,"total":2684.0},"2 παιδιά":{"base":2294.0,"duty":320.0,"child":120.0,"total":2734.0},"3 παιδιά":{"base":2294.0,"duty":320.0,"child":170.0,"total":2784.0},"4 παιδιά":{"base":2294.0,"duty":320.0,"child":220.0,"total":2834.0}},"19 (ΑΡΧΙΦΥΛΑΚΑΣ)":{"Άγαμος":{"base":2339.0,"duty":190.0,"child":0.0,"total":2529.0},"Έγγαμος χωρίς παιδιά":{"base":2339.0,"duty":260.0,"child":0.0,"total":2599.0},"1 παιδί":{"base":2339.0,"duty":320.0,"child":70.0,"total":2729.0},"2 παιδιά":{"base":2339.0,"duty":320.0,"child":120.0,"total":2779.0},"3 παιδιά":{"base":2339.0,"duty":320.0,"child":170.0,"total":2829.0},"4 παιδιά":{"base":2339.0,"duty":320.0,"child":220.0,"total":2879.0}},"20 (ΑΡΧΙΦΥΛΑΚΑΣ)":{"Άγαμος":{"base":2385.0,"duty":190.0,"child":0.0,"total":2575.0},"Έγγαμος χωρίς παιδιά":{"base":2385.0,"duty":260.0,"child":0.0,"total":2645.0},"1 παιδί":{"base":2385.0,"duty":320.0,"child":70.0,"total":2775.0},"2 παιδιά":{"base":2385.0,"duty":320.0,"child":120.0,"total":2825.0},"3 παιδιά":{"base":2385.0,"duty":320.0,"child":170.0,"total":2875.0},"4 παιδιά":{"base":2385.0,"duty":320.0,"child":220.0,"total":2925.0}}}};
+
+</script>
+<script>
+/* Embedded app.js */
+
+(function(){
+  const $ = id => document.getElementById(id);
+  const fmt = n => (Math.round((Number(n)||0)*100)/100).toFixed(2).replace('.', ',');
+  const LS = 'eidiko_v22_state';
+
+  let selectedShift = 'P';
+  let calYear, calMonth;
+  let shifts = {}; // ISO -> P/A/N/AD/R/PN
+
+  function todayISO(){
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function iso(y,m,d){
+    return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+
+  function fromIso(s){
+    return new Date(s + 'T00:00:00');
+  }
+
+  function yearsBetween(a, b){
+    const d1 = new Date(a), d2 = new Date(b);
+    if (isNaN(d1) || isNaN(d2)) return null;
+    return (d2 - d1) / (365.25 * 24 * 3600 * 1000);
+  }
+
+  function categoryKey(){
+    const fam = $('family').value;
+    const kids = Math.min(4, Number($('kids').value || 0));
+    if (fam === 'single') return 'Άγαμος';
+    if (kids === 0) return 'Έγγαμος χωρίς παιδιά';
+    if (kids === 1) return '1 παιδί';
+    return `${kids} παιδιά`;
+  }
+
+  function stepForYears(y){
+    const R = window.PAY_TABLE.ranges || [];
+    for (const r of R){
+      if (y >= r.from && y < r.to) return r;
+    }
+    return R.length ? R[R.length - 1] : null;
+  }
+
+  function ageYears(birth, calc){
+    const d1 = new Date(birth), d2 = new Date(calc);
+    if (isNaN(d1) || isNaN(d2)) return null;
+    let age = d2.getFullYear() - d1.getFullYear();
+    const m = d2.getMonth() - d1.getMonth();
+    if (m < 0 || (m === 0 && d2.getDate() < d1.getDate())) age--;
+    return age;
+  }
+
+  function taxRatesForKids(kids){
+    const calc = $('calcDate')?.value || todayISO();
+    const birth = $('birthDate')?.value || '';
+    const age = ageYears(birth, calc);
+    const k = Math.max(0, Math.min(6, Number(kids) || 0));
+
+    const under25 = [
+      [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+      [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+      [0.26, 0.24, 0.22, 0.20, 0.18, 0.16, 0.14],
+      [0.34, 0.34, 0.34, 0.34, 0.34, 0.34, 0.34],
+      [0.39, 0.39, 0.39, 0.39, 0.39, 0.39, 0.39],
+      [0.44, 0.44, 0.44, 0.44, 0.44, 0.44, 0.44]
+    ];
+
+    const age26to30 = [
+      [0.09, 0.09, 0.09, 0.09, 0.00, 0.00, 0.00],
+      [0.09, 0.09, 0.09, 0.09, 0.00, 0.00, 0.00],
+      [0.26, 0.24, 0.22, 0.20, 0.18, 0.16, 0.14],
+      [0.34, 0.34, 0.34, 0.34, 0.34, 0.34, 0.34],
+      [0.39, 0.39, 0.39, 0.39, 0.39, 0.39, 0.39],
+      [0.44, 0.44, 0.44, 0.44, 0.44, 0.44, 0.44]
+    ];
+
+    const over30 = [
+      [0.09, 0.09, 0.09, 0.09, 0.00, 0.00, 0.00],
+      [0.20, 0.18, 0.16, 0.09, 0.00, 0.00, 0.00],
+      [0.26, 0.24, 0.22, 0.20, 0.18, 0.16, 0.14],
+      [0.34, 0.34, 0.34, 0.34, 0.34, 0.34, 0.34],
+      [0.39, 0.39, 0.39, 0.39, 0.39, 0.39, 0.39],
+      [0.44, 0.44, 0.44, 0.44, 0.44, 0.44, 0.44]
+    ];
+
+    if (age != null && age <= 25) return under25.map(row => row[k]);
+    if (age != null && age <= 30) return age26to30.map(row => row[k]);
+    return over30.map(row => row[k]);
+  }
+
+  function taxCreditBase(kids){
+    if (kids <= 0) return 777;
+    if (kids === 1) return 900;
+    if (kids === 2) return 1120;
+    if (kids === 3) return 1340;
+    if (kids === 4) return 1580;
+    if (kids === 5) return 1780;
+    return 1780 + (kids - 5) * 220;
+  }
+
+  function progressiveTax(annualTaxable, kids){
+    const rates = taxRatesForKids(kids);
+    const bounds = [10000,20000,30000,40000,60000,Infinity];
+    let prev = 0, tax = 0;
+    for (let i=0; i<bounds.length; i++){
+      const upTo = bounds[i];
+      const slice = Math.max(0, Math.min(annualTaxable, upTo) - prev);
+      tax += slice * rates[i];
+      prev = upTo;
+      if (annualTaxable <= upTo) break;
+    }
+    let credit = taxCreditBase(kids);
+    if (annualTaxable > 12000){
+      credit = Math.max(0, credit - Math.floor((annualTaxable - 12000)/1000) * 20);
+    }
+    return {taxBeforeCredit: tax, credit, finalTax: Math.max(0, tax - credit)};
+  }
+
+  function compute(){
+    const calc = $('calcDate').value || todayISO();
+    const hire = $('hireDate').value || '2000-07-20';
+    const y = yearsBetween(hire, calc);
+    const priorMonths = Math.max(0, Math.floor(Number($('preServiceMonths')?.value || 0)));
+    const salaryYears = y == null ? null : y + (priorMonths / 12);
+    $('years').value = y == null ? '-' : y.toFixed(2).replace('.', ',');
+    if ($('gradeYears')) $('gradeYears').value = y == null ? '-' : y.toFixed(2).replace('.', ',');
+    if ($('salaryYears')) $('salaryYears').value = salaryYears == null ? '-' : salaryYears.toFixed(2).replace('.', ',');
+    const stepRec = stepForYears(salaryYears == null ? 0 : salaryYears);
+    const step = stepRec ? stepRec.step : null;
+    $('step').value = step ? String(step) : '-';
+    $('rangeLabel').value = stepRec ? stepRec.label : '-';
+
+    const cat = categoryKey();
+    const rec = (step && window.PAY_TABLE.byStep && window.PAY_TABLE.byStep[String(step)] && window.PAY_TABLE.byStep[String(step)][cat]) || {base:0,duty:0,child:0,total:0};
+    const BASE_INCREASE = 0;
+    const base = Number(rec.base || 0) + BASE_INCREASE;
+    const duty = Number(rec.duty || 0);
+    const child = Number(rec.child || 0);
+
+    const border = $('borderYes').value === 'yes' ? 130 : 0;
+
+    const fiveCount = Number($('fiveDaysCount').value || 0);
+    const fiveRate = Number($('fiveDaysRate').value || 46);
+    const nightCount = Number($('nightCount').value || 0);
+    const nightRate = Number($('nightRate').value || 26.5);
+
+    const fiveGross = fiveCount * fiveRate;
+    const nightGross = nightCount * nightRate;
+
+    $('basePay').textContent = fmt(base);
+    $('dutyPay').textContent = fmt(duty);
+    $('childPay').textContent = fmt(child);
+
+    const fiveDed = fiveGross * 0.02;
+    const fiveTax = (fiveGross - fiveDed) * 0.20;
+    const fiveNet = fiveGross - fiveDed - fiveTax;
+
+    const nightDed = nightGross * 0.04;
+    const nightTax = (nightGross - nightDed) * 0.20;
+    const nightNet = nightGross - nightDed - nightTax;
+
+    $('fiveGross').textContent = fmt(fiveGross);
+    $('fiveDed').textContent = fmt(fiveDed);
+    $('fiveTax').textContent = fmt(fiveTax);
+    $('fiveNet').textContent = fmt(fiveNet);
+
+    $('nightGross').textContent = fmt(nightGross);
+    $('nightDed').textContent = fmt(nightDed);
+    $('nightTax').textContent = fmt(nightTax);
+    $('nightNet').textContent = fmt(nightNet);
+
+    const gross = base + duty + child + border + fiveGross + nightGross;
+    $('grossTotal').textContent = fmt(gross);
+
+    
+
+const regular = base + duty + child + border;
+
+const insuranceType = $('insurance').value;
+
+// Κρατήσεις με χωριστή βάση για βασικό μισθό και επιδόματα.
+// Η εφαρμογή ακολουθεί τον πίνακα κρατήσεων που έχει δοθεί από τον χρήστη.
+const allowances = duty + child + border;
+const post93 = insuranceType === 'post93';
+const tpdyBaseAmt = base * 0.04;
+const tpdyAllowAmt = post93 ? allowances * 0.04 : 0;
+const tpdy = tpdyBaseAmt + tpdyAllowAmt;
+
+// ΜΤΠΥ: μετά το 1993 = 4,5% σε βασικό + επιδόματα.
+// πριν το 1993 = 4,5% στον βασικό + 1% στα επιδόματα.
+const mtpyBaseAmt = base * 0.045;
+const mtpyAllowAmt = allowances * (post93 ? 0.045 : 0.01);
+const mtpy = mtpyBaseAmt + mtpyAllowAmt;
+
+const teadyBaseAmt = base * 0.03;
+const teadyAllowAmt = post93 ? allowances * 0.03 : 0;
+const teady = teadyBaseAmt + teadyAllowAmt;
+const healthBaseAmt = base * 0.0205;
+const healthAllowAmt = allowances * 0.0205;
+const health = healthBaseAmt + healthAllowAmt;
+const efkaBaseAmt = base * 0.0667;
+const efkaAllowAmt = post93 ? allowances * 0.0667 : 0;
+const efka = efkaBaseAmt + efkaAllowAmt;
+const unempBaseAmt = base * 0.02;
+const unempAllowAmt = allowances * 0.02;
+const unemp = unempBaseAmt + unempAllowAmt;
+
+const fiveYears = $('fiveYearsOn').value === 'yes' ? Number($('fiveYearsAmount').value || 39.87) : 0;
+const other = Number($('otherFixed').value || 0);
+
+const monthlyTaxable = Math.max(0, gross - tpdy - mtpy - teady - health - efka - unemp - fiveYears - other);
+const annualTaxable = monthlyTaxable * 12;
+const dependents = Number($('dependents')?.value || 0);
+const taxInfo = progressiveTax(annualTaxable, dependents);
+
+$('annualTaxable').value = fmt(annualTaxable);
+$('taxCreditOut').value = fmt(taxInfo.credit);
+
+const monthlyTax = taxInfo.finalTax / 12;
+$('taxAmt').textContent = fmt(monthlyTax);
+$('taxMonthlyOut').value = fmt(monthlyTax);
+
+if ($('tpdyAmt')) $('tpdyAmt').textContent = fmt(tpdy);
+if ($('mtpyAmt')) $('mtpyAmt').textContent = fmt(mtpy);
+if ($('teadyAmt')) $('teadyAmt').textContent = fmt(teady);
+if ($('healthAmt')) $('healthAmt').textContent = fmt(health);
+if ($('efkaAmt')) $('efkaAmt').textContent = fmt(efka);
+if ($('unempAmt')) $('unempAmt').textContent = fmt(unemp);
+// Αναλυτικός πίνακας: βάση βασικού μισθού και βάση επιδομάτων.
+const setIf = (id, value) => { const el = $(id); if (el) el.textContent = value === null ? '—' : fmt(value); };
+setIf('tpdyBase', tpdyBaseAmt); setIf('tpdyAllow', post93 ? tpdyAllowAmt : null);
+setIf('mtpyBase', mtpyBaseAmt); setIf('mtpyAllow', mtpyAllowAmt);
+setIf('teadyBase', teadyBaseAmt); setIf('teadyAllow', post93 ? teadyAllowAmt : null);
+setIf('healthBase', healthBaseAmt); setIf('healthAllow', healthAllowAmt);
+setIf('efkaBase', efkaBaseAmt); setIf('efkaAllow', post93 ? efkaAllowAmt : null);
+setIf('unempBase', unempBaseAmt); setIf('unempAllow', unempAllowAmt);
+setIf('dedBaseTotal', tpdyBaseAmt + mtpyBaseAmt + teadyBaseAmt + healthBaseAmt + efkaBaseAmt + unempBaseAmt);
+setIf('dedAllowTotal', tpdyAllowAmt + mtpyAllowAmt + teadyAllowAmt + healthAllowAmt + efkaAllowAmt + unempAllowAmt);
+$('fiveYearsDed').textContent = fmt(fiveYears);
+$('otherAmt').textContent = fmt(other);
+
+const deds = tpdy + mtpy + teady + health + efka + unemp + fiveYears + other + monthlyTax + fiveDed + fiveTax + nightDed + nightTax;
+$('dedTotal').textContent = fmt(deds);
+$('netTotal').textContent = fmt(gross - deds);
+
+
+// Εκκαθαριστικό (1 σελίδα)
+if ($('slipBase')) $('slipBase').textContent = fmt(base);
+if ($('slipDuty')) $('slipDuty').textContent = fmt(duty);
+if ($('slipChild')) $('slipChild').textContent = fmt(child);
+if ($('slipBorder')) $('slipBorder').textContent = fmt(border);
+if ($('slipGross')) $('slipGross').textContent = fmt(regular);
+
+if ($('slipTpdy')) $('slipTpdy').textContent = fmt(tpdy);
+if ($('slipMtpy')) $('slipMtpy').textContent = fmt(mtpy);
+if ($('slipTeady')) $('slipTeady').textContent = fmt(teady);
+if ($('slipHealth')) $('slipHealth').textContent = fmt(health);
+if ($('slipEfka')) $('slipEfka').textContent = fmt(efka);
+if ($('slipUnemp')) $('slipUnemp').textContent = fmt(unemp);
+if ($('slipFiveYears')) $('slipFiveYears').textContent = fmt(fiveYears);
+if ($('slipOther')) $('slipOther').textContent = fmt(other);
+if ($('slipTax')) $('slipTax').textContent = fmt(monthlyTax);
+
+const regularDeds = tpdy + mtpy + teady + health + efka + unemp + fiveYears + other + monthlyTax;
+if ($('slipDed')) $('slipDed').textContent = fmt(regularDeds);
+
+if ($('slipNightGross')) $('slipNightGross').textContent = fmt(nightGross);
+if ($('slipNightDedTax')) $('slipNightDedTax').textContent = fmt(nightDed + nightTax);
+if ($('slipNightNet')) $('slipNightNet').textContent = fmt(nightNet);
+
+if ($('slipFiveGross')) $('slipFiveGross').textContent = fmt(fiveGross);
+if ($('slipFiveDedTax')) $('slipFiveDedTax').textContent = fmt(fiveDed + fiveTax);
+if ($('slipFiveNet')) $('slipFiveNet').textContent = fmt(fiveNet);
+
+const extrasNet = nightNet + fiveNet;
+if ($('slipExtrasNet')) $('slipExtrasNet').textContent = fmt(extrasNet);
+if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extrasNet);
+
+
+
+
+    saveState();
+  }
+
+  function setShiftButtons(){
+    document.querySelectorAll('.shiftBtn[data-shift]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.shift === selectedShift);
+    });
+  }
+
+  function renderCalendar(){
+    const title = new Date(calYear, calMonth - 1, 1).toLocaleString('el-GR', {month:'long', year:'numeric'});
+    $('calTitle').textContent = title.charAt(0).toUpperCase() + title.slice(1);
+
+    const grid = $('calGrid');
+    grid.innerHTML = '';
+
+    const first = new Date(calYear, calMonth - 1, 1);
+    const start = (first.getDay() + 6) % 7;
+    const dim = new Date(calYear, calMonth, 0).getDate();
+    const prevDim = new Date(calYear, calMonth - 1, 0).getDate();
+
+    for (let i=0; i<start; i++){
+      grid.appendChild(makeDay(calYear, calMonth - 1, prevDim - start + 1 + i, true));
+    }
+    for (let d=1; d<=dim; d++){
+      grid.appendChild(makeDay(calYear, calMonth, d, false));
+    }
+    const total = start + dim;
+    const rest = total <= 35 ? 35 - total : 42 - total;
+    for (let d=1; d<=rest; d++){
+      grid.appendChild(makeDay(calYear, calMonth + 1, d, true));
+    }
+
+    updateCountsFromCalendar();
+    setShiftButtons();
+    saveState();
+  }
+
+  function makeDay(y, m, d, out){
+    const date = new Date(y, m - 1, d);
+    const key = iso(date.getFullYear(), date.getMonth()+1, date.getDate());
+    const val = shifts[key] || '';
+    const dow = date.getDay();
+
+    const cell = document.createElement('div');
+    cell.className = 'day' + ((dow===0 || dow===6) ? ' weekend' : '') + (out ? ' out' : '');
+
+    const isNightBox = (val === 'N' || val === 'PN');
+    const isDutyBox = (val === 'P' || val === 'A' || val === 'N' || val === 'PN');
+    let isFiveDayBox = false;
+
+    if (dow === 5 && isNightBox) isFiveDayBox = true;
+    if ((dow === 6 || dow === 0) && isDutyBox) isFiveDayBox = true;
+
+    if (isNightBox) cell.classList.add('calendar-night');
+    if (isFiveDayBox) {
+      cell.classList.remove('calendar-night');
+      cell.classList.add('calendar-fiveday');
+    }
+
+    cell.innerHTML = '<div class="num">' + date.getDate() + '</div>';
+
+    const mark = document.createElement('div');
+    mark.className = 'mark';
+
+    if (val === 'PN'){
+      mark.innerHTML = '<div class="splitWrap"><div class="splitTop">ΠΡ</div><div class="splitBottom">ΝΥ</div></div>';
+    } else if (val) {
+      const cls = val === 'P' ? 'singleP' : val === 'A' ? 'singleA' : val === 'N' ? 'singleN' : val === 'AD' ? 'singleAD' : 'singleR';
+      const label = val === 'P' ? 'ΠΡ' : val === 'A' ? 'ΑΠ' : val === 'N' ? 'ΝΥ' : val === 'AD' ? 'ΑΔ' : 'Ρ';
+      mark.innerHTML = '<div class="' + cls + '">' + label + '</div>';
+    }
+    cell.appendChild(mark);
+
+    cell.addEventListener('click', function(){
+      applyShift(key);
+      renderCalendar();
+      $('nightCount').value = $('sumNights').textContent;
+      $('fiveDaysCount').value = $('sumFivedays').textContent;
+      compute();
+    });
+
+    return cell;
+  }
+
+  function applyShift(key){
+    const cur = shifts[key] || '';
+    const sel = selectedShift;
+
+    if (cur === sel){
+      delete shifts[key];
+      return;
+    }
+    if (cur === 'PN'){
+      if (sel === 'P'){ shifts[key] = 'N'; return; }
+      if (sel === 'N'){ shifts[key] = 'P'; return; }
+      shifts[key] = sel;
+      return;
+    }
+    if ((cur === 'P' && sel === 'N') || (cur === 'N' && sel === 'P')){
+      shifts[key] = 'PN';
+      return;
+    }
+    shifts[key] = sel;
+  }
+
+  function updateCountsFromCalendar(){
+    let nights = 0;
+    let fives = 0;
+
+    const dim = new Date(calYear, calMonth, 0).getDate();
+
+    for (let d = 1; d <= dim; d++){
+      const key = iso(calYear, calMonth, d);
+      const val = shifts[key];
+      if (!val) continue;
+
+      const date = new Date(calYear, calMonth - 1, d);
+      const day = date.getDay(); // 0 Κυρ ... 6 Σαβ
+
+      const hasNight = (val === 'N' || val === 'PN');
+      const hasWeekendDuty = (val === 'P' || val === 'A' || val === 'N' || val === 'PN');
+
+      // Νύχτες: όλες οι νυχτερινές βάρδιες μετράνε
+      if (hasNight){
+        nights += 1;
+      }
+
+      // Πενθήμερα: Παρασκευή νύχτα, Σάββατο/Κυριακή όλες οι βάρδιες
+      if ((day === 5 && hasNight) || ((day === 6 || day === 0) && hasWeekendDuty)){
+        fives += 1;
+      }
+    }
+
+    $('sumNights').textContent = String(nights);
+    $('sumFivedays').textContent = String(fives);
+  }
+
+  function clearCurrentMonth(){
+    const dim = new Date(calYear, calMonth, 0).getDate();
+    for (let d=1; d<=dim; d++){
+      delete shifts[iso(calYear, calMonth, d)];
+    }
+    renderCalendar();
+    $('nightCount').value = $('sumNights').textContent;
+    $('fiveDaysCount').value = $('sumFivedays').textContent;
+    compute();
+  }
+
+  function copyCycle(){
+    const len = Number($('cycleLen').value || 5);
+    const months = Number($('copyRange').value || 1);
+
+    // read pattern from first len days of current month
+    const pattern = [];
+    for (let d=1; d<=len; d++){
+      pattern.push(shifts[iso(calYear, calMonth, d)] || '');
+    }
+    for (let mi=0; mi<months; mi++){
+      let y = calYear;
+      let m = calMonth + mi;
+      while (m > 12){ m -= 12; y += 1; }
+      const dim = new Date(y, m, 0).getDate();
+      for (let d=1; d<=dim; d++){
+        const v = pattern[(d-1) % pattern.length];
+        const key = iso(y, m, d);
+        if (v){ shifts[key] = v; } else { delete shifts[key]; }
+      }
+    }
+    renderCalendar();
+    $('nightCount').value = $('sumNights').textContent;
+    $('fiveDaysCount').value = $('sumFivedays').textContent;
+    compute();
+  }
+
+  function saveState(){
+    try{
+      const state = {
+        selectedShift, calYear, calMonth, shifts,
+        insurance: $('insurance').value,
+        family: $('family').value,
+        kids: $('kids').value,
+        dependents: $('dependents') ? $('dependents').value : '0',
+        birthDate: $('birthDate') ? $('birthDate').value : '',
+        hireDate: $('hireDate').value,
+        preServiceMonths: $('preServiceMonths') ? $('preServiceMonths').value : '0',
+        borderYes: $('borderYes').value,
+        fiveDaysCount: $('fiveDaysCount').value,
+        fiveDaysRate: $('fiveDaysRate').value,
+        nightCount: $('nightCount').value,
+        nightRate: $('nightRate').value,
+        fiveYearsOn: $('fiveYearsOn').value,
+        fiveYearsAmount: $('fiveYearsAmount').value,
+        otherFixed: $('otherFixed').value,
+        cycleLen: $('cycleLen').value,
+        copyRange: $('copyRange').value
+      };
+      localStorage.setItem(LS, JSON.stringify(state));
+    } catch(e){}
+  }
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(LS);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      selectedShift = s.selectedShift || 'P';
+      calYear = s.calYear || calYear;
+      calMonth = s.calMonth || calMonth;
+      shifts = s.shifts || {};
+      if (s.insurance != null) $('insurance').value = s.insurance;
+      if (s.family != null) $('family').value = s.family;
+      if (s.kids != null) $('kids').value = s.kids;
+      if (s.dependents != null && $('dependents')) $('dependents').value = s.dependents;
+      if (s.birthDate && $('birthDate')) $('birthDate').value = s.birthDate;
+      if (s.hireDate) $('hireDate').value = s.hireDate;
+      if (s.preServiceMonths != null && $('preServiceMonths')) $('preServiceMonths').value = s.preServiceMonths;
+      if (s.borderYes != null) $('borderYes').value = s.borderYes;
+      if (s.fiveDaysCount != null) $('fiveDaysCount').value = s.fiveDaysCount;
+      if (s.fiveDaysRate != null) $('fiveDaysRate').value = s.fiveDaysRate;
+      if (s.nightCount != null) $('nightCount').value = s.nightCount;
+      if (s.nightRate != null) $('nightRate').value = s.nightRate;
+      if (s.fiveYearsOn != null) $('fiveYearsOn').value = s.fiveYearsOn;
+      if (s.fiveYearsAmount != null) $('fiveYearsAmount').value = s.fiveYearsAmount;
+      if (s.otherFixed != null) $('otherFixed').value = s.otherFixed;
+      if (s.cycleLen != null) $('cycleLen').value = s.cycleLen;
+      if (s.copyRange != null) $('copyRange').value = s.copyRange;
+    } catch(e){}
+  }
+
+  function init(){
+    const now = new Date();
+    calYear = now.getFullYear();
+    calMonth = now.getMonth() + 1;
+    $('calcDate').value = todayISO(); // always today's date
+    if (!$('hireDate').value) $('hireDate').value = '2000-07-20';
+
+    loadState();
+    $('calcDate').value = todayISO(); // force today after loading
+
+    document.querySelectorAll('.shiftBtn[data-shift]').forEach(btn => {
+      btn.addEventListener('click', function(){
+        selectedShift = btn.dataset.shift;
+        setShiftButtons();
+        saveState();
+      });
+    });
+
+    $('prevMonth').addEventListener('click', function(){
+      calMonth -= 1;
+      if (calMonth < 1){ calMonth = 12; calYear -= 1; }
+      renderCalendar();
+    });
+    $('nextMonth').addEventListener('click', function(){
+      calMonth += 1;
+      if (calMonth > 12){ calMonth = 1; calYear += 1; }
+      renderCalendar();
+    });
+    $('copyBtn').addEventListener('click', copyCycle);
+    $('clearMonthBtn').addEventListener('click', clearCurrentMonth);
+    const resetBtn = $('resetStorageBtn');
+    if (resetBtn){ resetBtn.addEventListener('click', function(){ try{ localStorage.removeItem(LS); }catch(e){} location.reload(); }); }
+
+    document.querySelectorAll('input,select').forEach(el => {
+      el.addEventListener('input', compute);
+      el.addEventListener('change', compute);
+    });
+
+    renderCalendar();
+    $('nightCount').value = $('sumNights').textContent;
+    $('fiveDaysCount').value = $('sumFivedays').textContent;
+    compute();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+
+</script>
 
   <script>
   /* v44 — Διόρθωση φορολογίας νυχτερινών / πενθημέρων
@@ -530,14 +1129,13 @@
       // Δικαίωμα εγγραφής ΜΤΠΥ: ένας μηνιαίος μισθός ακαθάριστων
       // αποδοχών του πρώτου πλήρους μήνα, σε 12 ισόποσες δόσεις.
       // Στην εφαρμογή η βάση είναι οι τακτικές μικτές αποδοχές:
-      // βασικός + επίδομα ιδιαίτερων καθηκόντων + τέκνα + παραμεθόριος + προσωπική διαφορά.
+      // βασικός + επίδομα ιδιαίτερων καθηκόντων + τέκνα + παραμεθόριος.
       // Νυχτερινά και πενθήμερα δεν προστίθενται στη βάση αυτή.
       const base = num(byId('basePay')?.textContent);
       const duty = num(byId('dutyPay')?.textContent);
       const child = num(byId('childPay')?.textContent);
       const border = byId('borderYes')?.value === 'yes' ? 130 : 0;
-      const personal = num(byId('personalDiff')?.value);
-      const firstMonthGross = base + duty + child + border + personal;
+      const firstMonthGross = base + duty + child + border;
       const amount = active ? firstMonthGross / 12 : 0;
       const row = byId('mtpyEntryRow');
       const slipRow = byId('slipMtpyEntryRow');
@@ -610,6 +1208,33 @@
       }
     });
   </script>
+
+
+<script>
+(function () {
+  function syncInsuranceButtons() {
+    const selector = document.getElementById('insurance');
+    if (!selector) return;
+    document.querySelectorAll('.insurance-choice-btn').forEach(function (button) {
+      const selected = button.dataset.insurance === selector.value;
+      button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    const selector = document.getElementById('insurance');
+    if (!selector) return;
+    document.querySelectorAll('.insurance-choice-btn').forEach(function (button) {
+      button.addEventListener('click', function () {
+        selector.value = button.dataset.insurance;
+        selector.dispatchEvent(new Event('change', { bubbles: true }));
+        syncInsuranceButtons();
+      });
+    });
+    selector.addEventListener('change', syncInsuranceButtons);
+    syncInsuranceButtons();
+  });
+})();
+</script>
 
 </body>
 </html>

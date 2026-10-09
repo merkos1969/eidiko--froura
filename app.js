@@ -141,7 +141,6 @@
     const child = Number(rec.child || 0);
 
     const border = $('borderYes').value === 'yes' ? 130 : 0;
-    const personal = Number($('personalDiff').value || 0);
 
     const fiveCount = Number($('fiveDaysCount').value || 0);
     const fiveRate = Number($('fiveDaysRate').value || 46);
@@ -173,31 +172,41 @@
     $('nightTax').textContent = fmt(nightTax);
     $('nightNet').textContent = fmt(nightNet);
 
-    const gross = base + duty + child + border + personal + fiveGross + nightGross;
+    const gross = base + duty + child + border + fiveGross + nightGross;
     $('grossTotal').textContent = fmt(gross);
 
     
 
-const regular = base + duty + child + border + personal;
+const regular = base + duty + child + border;
 
 const insuranceType = $('insurance').value;
 
-// βασικές κρατήσεις
-const tpdy = regular * 0.04;
+// Κρατήσεις με χωριστή βάση για βασικό μισθό και επιδόματα.
+// Η εφαρμογή ακολουθεί τον πίνακα κρατήσεων που έχει δοθεί από τον χρήστη.
+const allowances = duty + child + border;
+const post93 = insuranceType === 'post93';
+const tpdyBaseAmt = base * 0.04;
+const tpdyAllowAmt = post93 ? allowances * 0.04 : 0;
+const tpdy = tpdyBaseAmt + tpdyAllowAmt;
 
-// ΜΤΠΥ: μετά το 1993 = 4,5% σε βασικό + επιδόματα
-// πριν το 1993 = 4,5% στον βασικό + 1% στα επιδόματα
-let mtpy = 0;
-if (insuranceType === 'post93') {
-  mtpy = regular * 0.045;
-} else {
-  mtpy = base * 0.045 + (duty + child + border + personal) * 0.01;
-}
+// ΜΤΠΥ: μετά το 1993 = 4,5% σε βασικό + επιδόματα.
+// πριν το 1993 = 4,5% στον βασικό + 1% στα επιδόματα.
+const mtpyBaseAmt = base * 0.045;
+const mtpyAllowAmt = allowances * (post93 ? 0.045 : 0.01);
+const mtpy = mtpyBaseAmt + mtpyAllowAmt;
 
-const teady = regular * 0.03;
-const health = regular * 0.0205;
-const efka = regular * 0.0667;
-const unemp = regular * 0.02;
+const teadyBaseAmt = base * 0.03;
+const teadyAllowAmt = post93 ? allowances * 0.03 : 0;
+const teady = teadyBaseAmt + teadyAllowAmt;
+const healthBaseAmt = base * 0.0205;
+const healthAllowAmt = allowances * 0.0205;
+const health = healthBaseAmt + healthAllowAmt;
+const efkaBaseAmt = base * 0.0667;
+const efkaAllowAmt = post93 ? allowances * 0.0667 : 0;
+const efka = efkaBaseAmt + efkaAllowAmt;
+const unempBaseAmt = base * 0.02;
+const unempAllowAmt = allowances * 0.02;
+const unemp = unempBaseAmt + unempAllowAmt;
 
 const fiveYears = $('fiveYearsOn').value === 'yes' ? Number($('fiveYearsAmount').value || 39.87) : 0;
 const other = Number($('otherFixed').value || 0);
@@ -220,6 +229,16 @@ if ($('teadyAmt')) $('teadyAmt').textContent = fmt(teady);
 if ($('healthAmt')) $('healthAmt').textContent = fmt(health);
 if ($('efkaAmt')) $('efkaAmt').textContent = fmt(efka);
 if ($('unempAmt')) $('unempAmt').textContent = fmt(unemp);
+// Αναλυτικός πίνακας: βάση βασικού μισθού και βάση επιδομάτων.
+const setIf = (id, value) => { const el = $(id); if (el) el.textContent = value === null ? '—' : fmt(value); };
+setIf('tpdyBase', tpdyBaseAmt); setIf('tpdyAllow', post93 ? tpdyAllowAmt : null);
+setIf('mtpyBase', mtpyBaseAmt); setIf('mtpyAllow', mtpyAllowAmt);
+setIf('teadyBase', teadyBaseAmt); setIf('teadyAllow', post93 ? teadyAllowAmt : null);
+setIf('healthBase', healthBaseAmt); setIf('healthAllow', healthAllowAmt);
+setIf('efkaBase', efkaBaseAmt); setIf('efkaAllow', post93 ? efkaAllowAmt : null);
+setIf('unempBase', unempBaseAmt); setIf('unempAllow', unempAllowAmt);
+setIf('dedBaseTotal', tpdyBaseAmt + mtpyBaseAmt + teadyBaseAmt + healthBaseAmt + efkaBaseAmt + unempBaseAmt);
+setIf('dedAllowTotal', tpdyAllowAmt + mtpyAllowAmt + teadyAllowAmt + healthAllowAmt + efkaAllowAmt + unempAllowAmt);
 $('fiveYearsDed').textContent = fmt(fiveYears);
 $('otherAmt').textContent = fmt(other);
 
@@ -233,7 +252,6 @@ if ($('slipBase')) $('slipBase').textContent = fmt(base);
 if ($('slipDuty')) $('slipDuty').textContent = fmt(duty);
 if ($('slipChild')) $('slipChild').textContent = fmt(child);
 if ($('slipBorder')) $('slipBorder').textContent = fmt(border);
-if ($('slipPersonal')) $('slipPersonal').textContent = fmt(personal);
 if ($('slipGross')) $('slipGross').textContent = fmt(regular);
 
 if ($('slipTpdy')) $('slipTpdy').textContent = fmt(tpdy);
@@ -451,7 +469,6 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
         hireDate: $('hireDate').value,
         preServiceMonths: $('preServiceMonths') ? $('preServiceMonths').value : '0',
         borderYes: $('borderYes').value,
-        personalDiff: $('personalDiff').value,
         fiveDaysCount: $('fiveDaysCount').value,
         fiveDaysRate: $('fiveDaysRate').value,
         nightCount: $('nightCount').value,
@@ -483,7 +500,6 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
       if (s.hireDate) $('hireDate').value = s.hireDate;
       if (s.preServiceMonths != null && $('preServiceMonths')) $('preServiceMonths').value = s.preServiceMonths;
       if (s.borderYes != null) $('borderYes').value = s.borderYes;
-      if (s.personalDiff != null) $('personalDiff').value = s.personalDiff;
       if (s.fiveDaysCount != null) $('fiveDaysCount').value = s.fiveDaysCount;
       if (s.fiveDaysRate != null) $('fiveDaysRate').value = s.fiveDaysRate;
       if (s.nightCount != null) $('nightCount').value = s.nightCount;
