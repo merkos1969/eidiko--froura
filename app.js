@@ -128,16 +128,55 @@
     $('years').value = y == null ? '-' : y.toFixed(2).replace('.', ',');
     if ($('gradeYears')) $('gradeYears').value = y == null ? '-' : y.toFixed(2).replace('.', ',');
     if ($('salaryYears')) $('salaryYears').value = salaryYears == null ? '-' : salaryYears.toFixed(2).replace('.', ',');
-    const stepRec = stepForYears(salaryYears == null ? 0 : salaryYears);
-    const step = stepRec ? stepRec.step : null;
+    const salaryStepRec = stepForYears(salaryYears == null ? 0 : salaryYears);
+    const step = salaryStepRec ? salaryStepRec.step : null;
     $('step').value = step ? String(step) : '-';
-    $('rangeLabel').value = stepRec ? stepRec.label : '-';
+    $('rangeLabel').value = salaryStepRec ? salaryStepRec.label : '-';
+
+    // Ο βαθμός καθορίζεται μόνο από τα έτη στην ΥΕΦΚΚ, ποτέ από την αναγνωρισμένη προϋπηρεσία.
+    const gradeYears = y == null ? 0 : y;
+    let gradeName, coeff;
+    if (gradeYears < 10) { gradeName = 'Φρουρός'; coeff = 1.02; }
+    else if (gradeYears < 20) { gradeName = 'Υπαρχιφύλακας Β΄'; coeff = 1.04; }
+    else if (gradeYears < 28) { gradeName = 'Υπαρχιφύλακας Α΄'; coeff = 1.04; }
+    else { gradeName = 'Αρχιφύλακας'; coeff = 1.07; }
+    if ($('gradeRank')) $('gradeRank').value = y == null ? '-' : gradeName;
 
     const cat = categoryKey();
-    const rec = (step && window.PAY_TABLE.byStep && window.PAY_TABLE.byStep[String(step)] && window.PAY_TABLE.byStep[String(step)][cat]) || {base:0,duty:0,child:0,total:0};
-    const BASE_INCREASE = 0;
-    const base = Number(rec.base || 0) + BASE_INCREASE;
-    const duty = Number(rec.duty || 0);
+    const rec = (step && window.PAY_TABLE.byStep && window.PAY_TABLE.byStep[String(step)] && window.PAY_TABLE.byStep[String(step)][cat]) || {base:0,baseTable:0,increase:40,duty:0,child:0,total:0};
+    // Πλήρης πίνακας βασικών Κατηγορίας Δ΄ (ΜΚ 1–20), όπως στο Excel του χρήστη.
+    const CATEGORY_D_BASES = {1:1100, 2:1160, 3:1195, 4:1231, 5:1268, 6:1306, 7:1345, 8:1385, 9:1427, 10:1469, 11:1514, 12:1559, 13:1606, 14:1654, 15:1703, 16:1755, 17:1807, 18:1861, 19:1917, 20:1975};
+    const stepNumberForBase = Number.parseInt(String(step), 10);
+    // Αν ο πραγματικός βαθμός είναι Φρουρός, κρατάμε την Κατηγορία Δ΄ ακόμη κι αν
+    // η αναγνωρισμένη προϋπηρεσία ανεβάζει το μισθολογικό ΜΚ πάνω από το ΜΚ 5.
+    const tableBase = gradeName === 'Φρουρός' && CATEGORY_D_BASES[stepNumberForBase]
+      ? CATEGORY_D_BASES[stepNumberForBase]
+      : Number(rec.baseTable ?? rec.base ?? 0);
+    const increase = Number(rec.increase ?? 40);
+    // Βασικός μισθός από το μισθολογικό ΜΚ, αλλά συντελεστής και επίδομα βαθμού από τον πραγματικό βαθμό ΥΕΦΚΚ.
+    const rankEntry = Object.entries(window.PAY_TABLE.byStep || {}).find(([key]) => {
+      const k = key.toUpperCase();
+      if (gradeName === 'Φρουρός') return k.includes('(ΦΡΟΥΡΟΣ)');
+      if (gradeName === 'Υπαρχιφύλακας Β΄') return k.includes('(ΥΠΑΡΧ Β)');
+      if (gradeName === 'Υπαρχιφύλακας Α΄') return k.includes('(ΥΠΑΡΧ Α)');
+      return k.includes('(ΑΡΧΙΦΥΛΑΚΑΣ)');
+    });
+    const rankRow = rankEntry ? rankEntry[1] : null;
+    const rankRec = rankRow && rankRow[cat] ? rankRow[cat] : rec;
+    // Keep cents exactly; do not round the calculated base to whole euros.
+    const base = Math.round((tableBase * coeff + increase + Number.EPSILON) * 100) / 100;
+    // Επίδομα ιδιαίτερων καθηκόντων κατηγορίας Δ΄: σταθερό ανά οικογενειακή κατάσταση.
+        // Επίδομα ιδιαίτερων καθηκόντων ανά βαθμό και οικογενειακή κατάσταση.
+    const isSingle = $('family').value === 'single';
+    const hasKids = Number($('kids').value || 0) > 0;
+    const dutyRates = {
+      'Φρουρός': [205, 275, 335],
+      'Υπαρχιφύλακας Β΄': [155, 225, 285],
+      'Υπαρχιφύλακας Α΄': [180, 250, 310],
+      'Αρχιφύλακας': [190, 260, 320]
+    };
+    const dutyTier = isSingle ? 0 : (hasKids ? 2 : 1);
+    const duty = (dutyRates[gradeName] || dutyRates['Φρουρός'])[dutyTier];
     const child = Number(rec.child || 0);
 
     const border = $('borderYes').value === 'yes' ? 130 : 0;
@@ -151,6 +190,10 @@
     const nightGross = nightCount * nightRate;
 
     $('basePay').textContent = fmt(base);
+    const baseFormula = $('baseFormula');
+    if (baseFormula) {
+      baseFormula.textContent = `${fmt(tableBase)} × ${coeff.toFixed(2).replace('.', ',')} + ${fmt(increase)} € = ${fmt(base)} €`;
+    }
     $('dutyPay').textContent = fmt(duty);
     $('childPay').textContent = fmt(child);
 

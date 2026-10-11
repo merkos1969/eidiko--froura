@@ -120,3 +120,25 @@ body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,
   .panel{border:1px solid #bbb;box-shadow:none}
   .panel-slip .line{padding:8px 2px}
 }
+/* Πράξη βασικού μισθού: χωρίς περιττή ετικέτα και με πλήρες πλάτος */
+.base-formula-line {
+  display: block !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+.base-formula-line #baseFormula {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  font-size: 13px;
+  line-height: 1.4;
+}
+@media (max-width: 480px) {
+  .base-formula-line #baseFormula { font-size: 12px; }
+}

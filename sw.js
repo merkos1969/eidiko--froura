@@ -1,10 +1,10 @@
-const CACHE_NAME = 'eidiko-froura-v46';
+const CACHE_NAME = 'yefkk-v54';
 const URLS_TO_CACHE = [
   './',
   './index.html',
-  './style.css?v=44',
-  './data.js?v=44',
-  './app.js?v=44',
+  './style.css?v=47',
+  './data.js?v=49',
+  './app.js?v=49',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
