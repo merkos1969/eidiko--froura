@@ -569,7 +569,7 @@ window.PAY_TABLE = {"ranges":[{"step":"1 (ΦΡΟΥΡΟΣ)","from":0.0,"to":3.0,"
     const gradeYears = y == null ? 0 : y;
     let gradeName, coeff;
     if (gradeYears < 10) { gradeName = 'Φρουρός'; coeff = 1.02; }
-    else if (gradeYears < 20) { gradeName = 'Υπαρχιφύλακας Β΄'; coeff = 1.04; }
+    else if (gradeYears < 20) { gradeName = 'Υπαρχιφύλακας Β΄'; coeff = 1.03; }
     else if (gradeYears < 28) { gradeName = 'Υπαρχιφύλακας Α΄'; coeff = 1.04; }
     else { gradeName = 'Αρχιφύλακας'; coeff = 1.07; }
     if ($('gradeRank')) $('gradeRank').value = y == null ? '-' : gradeName;
