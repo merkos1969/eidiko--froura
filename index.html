@@ -569,7 +569,7 @@ window.PAY_TABLE = {"ranges":[{"step":"1 (ΦΡΟΥΡΟΣ)","from":0.0,"to":3.0,"
     const gradeYears = y == null ? 0 : y;
     let gradeName, coeff;
     if (gradeYears < 10) { gradeName = 'Φρουρός'; coeff = 1.02; }
-    else if (gradeYears < 20) { gradeName = 'Υπαρχιφύλακας Β΄'; coeff = 1.03; }
+    else if (gradeYears < 20) { gradeName = 'Υπαρχιφύλακας Β΄'; coeff = 1.04; }
     else if (gradeYears < 28) { gradeName = 'Υπαρχιφύλακας Α΄'; coeff = 1.04; }
     else { gradeName = 'Αρχιφύλακας'; coeff = 1.07; }
     if ($('gradeRank')) $('gradeRank').value = y == null ? '-' : gradeName;
@@ -856,31 +856,45 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
   function updateCountsFromCalendar(){
     let nights = 0;
     let fives = 0;
-
     const dim = new Date(calYear, calMonth, 0).getDate();
 
+    // Count each night shift independently.
     for (let d = 1; d <= dim; d++){
-      const key = iso(calYear, calMonth, d);
-      const val = shifts[key];
-      if (!val) continue;
-
-      const date = new Date(calYear, calMonth - 1, d);
-      const day = date.getDay(); // 0 Κυρ ... 6 Σαβ
-
-      const hasNight = (val === 'N' || val === 'PN');
-      const hasWeekendDuty = (val === 'P' || val === 'A' || val === 'N' || val === 'PN');
-
-      // Νύχτες: όλες οι νυχτερινές βάρδιες μετράνε
-      if (hasNight){
-        nights += 1;
-      }
-
-      // Πενθήμερα: Παρασκευή νύχτα, Σάββατο/Κυριακή όλες οι βάρδιες
-      if ((day === 5 && hasNight) || ((day === 6 || day === 0) && hasWeekendDuty)){
-        fives += 1;
-      }
+      const val = shifts[iso(calYear, calMonth, d)] || '';
+      if (val === 'N' || val === 'PN') nights += 1;
     }
 
+    // One five-day allowance per Saturday-based weekend block.
+    // A Friday night, Saturday duty, or Sunday duty qualifies that block.
+    // Count only blocks anchored by a Saturday inside this month, so a
+    // weekend crossing a month boundary is not counted twice.
+    let weekendBlocks = 0;
+    for (let sat = 1; sat <= dim; sat++){
+      if (new Date(calYear, calMonth - 1, sat).getDay() !== 6) continue;
+      weekendBlocks += 1;
+      // Friday night belongs to the weekend block even when Saturday is
+      // the first day of this month. In that case, read Friday from the
+      // previous calendar month instead of silently losing the five-day.
+      let friKey;
+      if (sat > 1) {
+        friKey = iso(calYear, calMonth, sat - 1);
+      } else {
+        const previousDay = new Date(calYear, calMonth - 2, 0);
+        friKey = iso(previousDay.getFullYear(), previousDay.getMonth() + 1, previousDay.getDate());
+      }
+      const friVal = shifts[friKey] || '';
+      const satVal = shifts[iso(calYear, calMonth, sat)] || '';
+      const sunVal = sat < dim ? (shifts[iso(calYear, calMonth, sat + 1)] || '') : '';
+      const isNight = v => v === 'N' || v === 'PN';
+      const isDuty = v => ['P', 'A', 'N', 'PN'].includes(v);
+      // One Friday night can increment BOTH counters: night count above,
+      // and one five-day allowance for this weekend block here.
+      if (isNight(friVal) || isDuty(satVal) || isDuty(sunVal)) fives += 1;
+    }
+
+    // Hard monthly cap: the calendar and payroll count can never show more
+    // than five five-day allowances, even if six or more weekend blocks qualify.
+    fives = Math.min(fives, 5);
     $('sumNights').textContent = String(nights);
     $('sumFivedays').textContent = String(fives);
   }
@@ -905,13 +919,18 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
     for (let d=1; d<=len; d++){
       pattern.push(shifts[iso(calYear, calMonth, d)] || '');
     }
+    // Keep the cycle continuous across real calendar dates. Do not restart
+    // the pattern at the beginning of each month (months can have 28–31 days).
+    const rangeStart = new Date(calYear, calMonth - 1, 1);
     for (let mi=0; mi<months; mi++){
-      let y = calYear;
-      let m = calMonth + mi;
-      while (m > 12){ m -= 12; y += 1; }
+      const monthStart = new Date(calYear, calMonth - 1 + mi, 1);
+      const y = monthStart.getFullYear();
+      const m = monthStart.getMonth() + 1;
       const dim = new Date(y, m, 0).getDate();
       for (let d=1; d<=dim; d++){
-        const v = pattern[(d-1) % pattern.length];
+        const date = new Date(y, m - 1, d);
+        const dayOffset = Math.round((date.getTime() - rangeStart.getTime()) / 86400000);
+        const v = pattern[dayOffset % pattern.length];
         const key = iso(y, m, d);
         if (v){ shifts[key] = v; } else { delete shifts[key]; }
       }
