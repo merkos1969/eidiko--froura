@@ -892,9 +892,11 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
       if (isNight(friVal) || isDuty(satVal) || isDuty(sunVal)) fives += 1;
     }
 
-    // Hard monthly cap: the calendar and payroll count can never show more
-    // than five five-day allowances, even if six or more weekend blocks qualify.
-    fives = Math.min(fives, 5);
+    // Hard monthly cap based on the number of Saturdays/weekend blocks:
+    // 4 Saturdays => at most 4 five-day allowances; 5 Saturdays => at most 5.
+    // Friday night remains counted as a night independently above, and can
+    // also qualify its corresponding weekend block as one five-day allowance.
+    fives = Math.min(fives, weekendBlocks);
     $('sumNights').textContent = String(nights);
     $('sumFivedays').textContent = String(fives);
   }
