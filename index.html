@@ -603,8 +603,23 @@ window.PAY_TABLE = {"ranges":[{"step":"1 (ΦΡΟΥΡΟΣ)","from":0.0,"to":3.0,"
 
     const border = $('borderYes').value === 'yes' ? 130 : 0;
 
-    const fiveCount = Number($('fiveDaysCount').value || 0);
+    // Payroll cap: payable five-day allowances are limited by the number
+    // of Saturdays in the currently selected calendar month (4 or 5).
+    // The calendar may show more qualifying services, but payment is capped.
+    // Friday night remains counted separately in nightCount and can also
+    // qualify as a five-day allowance through the calendar counter.
+    const requestedFiveCount = Math.max(0, Number($('fiveDaysCount').value || 0));
+    const monthDays = new Date(calYear, calMonth, 0).getDate();
+    let saturdayCap = 0;
+    for (let day = 1; day <= monthDays; day++) {
+      if (new Date(calYear, calMonth - 1, day).getDay() === 6) saturdayCap++;
+    }
+    const fiveCount = Math.min(requestedFiveCount, saturdayCap);
     const fiveRate = Number($('fiveDaysRate').value || 46);
+    // Keep the displayed/input payable count consistent with the capped amount.
+    if (Number($('fiveDaysCount').value || 0) !== fiveCount) {
+      $('fiveDaysCount').value = String(fiveCount);
+    }
     const nightCount = Number($('nightCount').value || 0);
     const nightRate = Number($('nightRate').value || 26.5);
 
