@@ -79,8 +79,37 @@
   }
 </style>
 
+
+<style id="maintenance-screen-style">
+  #maintenanceScreen {
+    position: fixed; inset: 0; z-index: 2147483647;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px; text-align: center; color: #f8fafc;
+    background: radial-gradient(ellipse at top, #12345a 0%, #06172d 48%, #020813 100%);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  #maintenanceScreen .maintenance-card { width: min(100%, 520px); }
+  #maintenanceScreen .maintenance-icon { font-size: 54px; line-height: 1; margin-bottom: 24px; }
+  #maintenanceScreen h1 { margin: 0 0 14px; font-size: clamp(27px, 6vw, 40px); font-weight: 850; letter-spacing: .2px; }
+  #maintenanceScreen p { margin: 0; color: #cbd5e1; font-size: clamp(16px, 3.8vw, 19px); line-height: 1.65; }
+  #maintenanceScreen .maintenance-status { display: inline-flex; align-items: center; gap: 9px; margin-top: 26px; padding: 9px 15px; border: 1px solid #60a5fa66; border-radius: 999px; background: #1d4ed822; color: #bfdbfe; font-size: 13px; font-weight: 750; letter-spacing: .8px; text-transform: uppercase; }
+  #maintenanceScreen .maintenance-dot { width: 8px; height: 8px; border-radius: 50%; background: #60a5fa; box-shadow: 0 0 12px #60a5fa; }
+  body.maintenance-active { overflow: hidden !important; }
+</style>
+
 </head>
 <body>
+
+  <div id="maintenanceScreen" role="alert" aria-live="polite">
+    <div class="maintenance-card">
+      <div class="maintenance-icon" aria-hidden="true">🛠️</div>
+      <h1>Η εφαρμογή βρίσκεται υπό αναβάθμιση</h1>
+      <p>Εργαζόμαστε για τη βελτίωση της εφαρμογής.<br>Παρακαλούμε δοκιμάστε ξανά σύντομα.</p>
+      <div class="maintenance-status"><span class="maintenance-dot"></span> Υπό αναβάθμιση</div>
+    </div>
+  </div>
+  <script>document.body.classList.add('maintenance-active');</script>
+
   <div class="page">
     <header class="topbar">
       <div class="brand">
@@ -1133,7 +1162,13 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
           readText('fiveDed') + readText('fiveTax') +
           readText('nightDed') + readText('nightTax');
 
-        const baseDeductionsTotal = baseDeductions + POYEF + baseTax;
+        // Κράτηση νεοδιόριστου ΜΤΠΥ (1ο έτος): προστίθεται μία φορά
+        // στις βασικές κρατήσεις, χωρίς να επηρεάζει τον φόρο των extras.
+        const mtpyEntryRow = byId('mtpyEntryRow');
+        const mtpyEntry = mtpyEntryRow && mtpyEntryRow.style.display !== 'none'
+          ? readText('mtpyEntryAmt')
+          : 0;
+        const baseDeductionsTotal = baseDeductions + POYEF + baseTax + mtpyEntry;
         const correctedDeductions = baseDeductionsTotal + extrasDeductions;
         const gross = readText('grossTotal');
         const correctedNet = gross - correctedDeductions;
@@ -1177,6 +1212,9 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
       document.addEventListener('input', scheduleFix, true);
       document.addEventListener('change', scheduleFix, true);
       document.addEventListener('click', () => setTimeout(scheduleFix, 0), true);
+      // Το ποσό νεοδιόριστου ΜΤΠΥ ενημερώνεται από το επόμενο script.
+      // Όταν αλλάξει, ζητάμε νέο ενιαίο υπολογισμό συνόλων.
+      document.addEventListener('mtpy-entry-updated', scheduleFix);
       setTimeout(scheduleFix, 50);
     });
   })();
@@ -1224,6 +1262,8 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
       const calc = byId('calcDate')?.value || new Date().toISOString().slice(0,10);
       const months = monthsBetween(hire, calc);
       const active = months >= 0 && months < 12;
+      const previousAmount = byId('mtpyEntryAmt')?.textContent || '';
+      const previousDisplay = byId('mtpyEntryRow')?.style.display || 'none';
       // Κράτηση νεοδιόριστου υπέρ ΜΤΠΥ: ένας μηνιαίος μισθός ακαθάριστων
       // αποδοχών του πρώτου πλήρους μήνα, σε 12 ισόποσες δόσεις.
       // Στην εφαρμογή η βάση είναι οι τακτικές μικτές αποδοχές:
@@ -1241,76 +1281,19 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
       if (slipRow) slipRow.style.display = active ? '' : 'none';
       if (byId('mtpyEntryAmt')) byId('mtpyEntryAmt').textContent = money(amount);
       if (byId('slipMtpyEntry')) byId('slipMtpyEntry').textContent = money(amount);
-    }
-
-    function applyMTPYEntryToTotals() {
-      const row = byId('mtpyEntryRow');
-      if (!row) return;
-
-      // Υπολογίζουμε τα σύνολα απευθείας από τις επιμέρους κρατήσεις,
-      // όχι προσθέτοντας την κράτηση ΜΤΠΥ πάνω σε ήδη υπολογισμένα σύνολα.
-      const entry = row.style.display !== 'none'
-        ? num(byId('mtpyEntryAmt')?.textContent)
-        : 0;
-
-      const baseInsurance =
-        num(byId('tpdyAmt')?.textContent) +
-        num(byId('mtpyAmt')?.textContent) +
-        num(byId('teadyAmt')?.textContent) +
-        num(byId('healthAmt')?.textContent) +
-        num(byId('efkaAmt')?.textContent) +
-        num(byId('unempAmt')?.textContent) +
-        num(byId('fiveYearsDed')?.textContent) +
-        num(byId('otherAmt')?.textContent);
-
-      const poyef = num(byId('poyefAmt')?.textContent);
-      const mainTax = num(byId('taxAmt')?.textContent);
-      const baseTotal = baseInsurance + entry + poyef + mainTax;
-
-      const extrasTotal =
-        num(byId('fiveDed')?.textContent) +
-        num(byId('fiveTax')?.textContent) +
-        num(byId('nightDed')?.textContent) +
-        num(byId('nightTax')?.textContent);
-
-      const allDeductions = baseTotal + extrasTotal;
-      const gross = num(byId('grossTotal')?.textContent);
-      const net = gross - allDeductions;
-
-      const put = (id, value) => {
-        const el = byId(id);
-        if (el) el.textContent = money(value);
-      };
-      put('baseDedTotal', baseTotal);
-      put('extrasDedTotal', extrasTotal);
-      put('dedTotal', allDeductions);
-      put('netTotal', net);
-
-      // Συνολικός φόρος = ΦΜΥ κύριου μισθού + φόρος πενθημέρων + φόρος νυχτερινών.
-      put('taxMonthTotal',
-        mainTax +
-        num(byId('fiveTax')?.textContent) +
-        num(byId('nightTax')?.textContent)
-      );
-
-      const slipBase = byId('slipBaseDed');
-      const slipExtras = byId('slipExtrasDed');
-      const slipDed = byId('slipDed');
-      const slipNet = byId('slipNet');
-      if (slipBase) slipBase.textContent = money(baseTotal);
-      if (slipExtras) slipExtras.textContent = money(extrasTotal);
-      if (slipDed) slipDed.textContent = money(allDeductions);
-      if (slipNet) slipNet.textContent = money(net);
-      const slipTax = byId('slipTax');
-      if (slipTax) slipTax.textContent = money(mainTax);
-      const slipPoyef = byId('slipPoyef');
-      if (slipPoyef) slipPoyef.textContent = money(poyef);
+      // Ειδοποίηση μόνο αν άλλαξε πραγματικά η κράτηση, ώστε να μην
+      // δημιουργείται ατέρμονος κύκλος από τα εσωτερικά input/change events.
+      const currentDisplay = row ? row.style.display : 'none';
+      if (previousAmount !== money(amount) || previousDisplay !== currentDisplay) {
+        document.dispatchEvent(new Event('mtpy-entry-updated'));
+      }
     }
 
     function apply() {
       updateServiceInfo();
+      // Τα τελικά σύνολα γράφονται πλέον μόνο από applyExtrasTaxFix(),
+      // το οποίο συνυπολογίζει φόρους extras και κράτηση νεοδιόριστου ΜΤΠΥ.
       updateMTPYEntry();
-      applyMTPYEntryToTotals();
     }
 
     window.addEventListener('load', () => {
