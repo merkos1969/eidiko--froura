@@ -6,7 +6,7 @@
   <title>Μισθολόγιο Εξωτερικής Φρούρησης</title>
   <link rel="stylesheet" href="https://merkos1969.github.io/eidiko--froura/style.css?v=47">
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#04122a">
+  <meta name="theme-color" content="#203b46">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Froura">
@@ -80,36 +80,227 @@
 </style>
 
 
-<style id="maintenance-screen-style">
-  #maintenanceScreen {
-    position: fixed; inset: 0; z-index: 2147483647;
-    display: flex; align-items: center; justify-content: center;
-    padding: 24px; text-align: center; color: #f8fafc;
-    background: radial-gradient(ellipse at top, #12345a 0%, #06172d 48%, #020813 100%);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  }
-  #maintenanceScreen .maintenance-card { width: min(100%, 520px); }
-  #maintenanceScreen .maintenance-icon { font-size: 54px; line-height: 1; margin-bottom: 24px; }
-  #maintenanceScreen h1 { margin: 0 0 14px; font-size: clamp(27px, 6vw, 40px); font-weight: 850; letter-spacing: .2px; }
-  #maintenanceScreen p { margin: 0; color: #cbd5e1; font-size: clamp(16px, 3.8vw, 19px); line-height: 1.65; }
-  #maintenanceScreen .maintenance-status { display: inline-flex; align-items: center; gap: 9px; margin-top: 26px; padding: 9px 15px; border: 1px solid #60a5fa66; border-radius: 999px; background: #1d4ed822; color: #bfdbfe; font-size: 13px; font-weight: 750; letter-spacing: .8px; text-transform: uppercase; }
-  #maintenanceScreen .maintenance-dot { width: 8px; height: 8px; border-radius: 50%; background: #60a5fa; box-shadow: 0 0 12px #60a5fa; }
-  body.maintenance-active { overflow: hidden !important; }
+<style id="premium-olive-amber-theme">
+:root{
+ --ink:#29351f;--muted:#66704c;--forest:#273617;--olive:#5f6c37;
+ --olive-light:#7c884e;--ivory:#fefaDF;--amber:#dca15d;--rust:#bc6c25;
+ --paper:#fffdf4;--line:#d9d4bd;
+ color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{
+ background:linear-gradient(145deg,#f5f1df 0%,#eeecd9 46%,#e6e9d2 100%)!important;
+ color:var(--ink)!important;
+ font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif!important;
+}
+body{line-height:1.5}
+.page{max-width:1000px!important;margin:0 auto!important;padding:18px!important}
+.topbar{
+ position:relative;overflow:hidden;display:flex!important;align-items:center!important;
+ justify-content:space-between!important;gap:18px!important;padding:26px!important;
+ border-radius:25px!important;
+ background:linear-gradient(118deg,#273617 0%,#46572b 48%,#687543 100%)!important;
+ border:1px solid #87915b!important;color:#fff!important;
+ box-shadow:0 15px 32px #27361735!important
+}
+.topbar:after{
+ content:"";position:absolute;width:230px;height:230px;border-radius:50%;
+ right:-75px;top:-125px;border:1px solid #ffffff38;
+ box-shadow:0 0 0 24px #ffffff0c,0 0 0 50px #ffffff08;pointer-events:none
+}
+.brandTitle{font-size:clamp(25px,4vw,36px)!important;line-height:1.12!important;letter-spacing:-.7px!important;font-weight:850!important;color:#fff!important}
+.brandSub{font-size:clamp(14px,2vw,18px)!important;line-height:1.35!important;color:#f5f0dc!important;font-weight:650!important}
+.topbar>div:last-child{position:relative;z-index:1}
+.topbar .printBtn{
+ background:linear-gradient(135deg,#fefaDF,#ead9b5)!important;color:#29351f!important;
+ border:1px solid #d5b77e!important;border-radius:14px!important;
+ box-shadow:0 4px 12px #17220f45!important;font-weight:800!important
+}
+.panel,.card,.slipBlock,.insurance-choice{
+ background:linear-gradient(155deg,#fffef8 0%,#f6f1df 100%)!important;
+ border:1px solid #d7d2bb!important;border-radius:23px!important;
+ box-shadow:0 9px 24px #3b42201a,0 2px 5px #3b42200a!important;
+ color:var(--ink)!important;padding:22px!important
+}
+.panel{margin:18px 0!important}
+h2,.slipHead{color:#4c5a2c!important;font-weight:850!important;letter-spacing:-.35px!important;border-color:#d7bd8d!important}
+h2{font-size:clamp(23px,3.2vw,30px)!important;margin:0 0 16px!important}
+label,.field label{color:#525c3c!important;font-weight:750!important;font-size:15px!important}
+.field{margin-bottom:14px!important}
+input,select,textarea{
+ min-height:52px!important;padding:12px 15px!important;border:1.5px solid #c9c6ad!important;
+ border-radius:15px!important;background:#fffef9!important;color:#29351f!important;
+ font-size:17px!important;box-shadow:inset 0 1px 2px #2736170b!important;
+ transition:border-color .18s,box-shadow .18s
+}
+input:focus,select:focus,textarea:focus{
+ outline:none!important;border-color:#b97835!important;
+ box-shadow:0 0 0 4px #dca15d38!important
+}
+button,.printBtn,.navBtn,.shiftBtn,#copyBtn,#clearMonthBtn{
+ border:1px solid #394b24!important;border-radius:13px!important;
+ background:linear-gradient(135deg,#46572b 0%,#687543 100%)!important;
+ color:#fffdf0!important;font-weight:800!important;
+ box-shadow:0 4px 10px #27361730!important;
+ transition:transform .16s,filter .16s,box-shadow .16s
+}
+button:hover,.printBtn:hover,.navBtn:hover,.shiftBtn:hover{
+ filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 7px 14px #27361735!important
+}
+button:active,.printBtn:active,.navBtn:active,.shiftBtn:active{transform:translateY(0)}
+.shiftBtn.active,.active{
+ background:linear-gradient(135deg,#dca15d,#edc58d)!important;
+ color:#342817!important;border-color:#b97835!important
+}
+.insurance-choice{background:#eeeedf!important;border-color:#c9cba9!important}
+.insurance-choice-title{color:#4c5a2c!important;font-weight:850!important}
+.insurance-choice-btn{
+ background:#fffdf4!important;color:#4c5a2c!important;border:1.5px solid #bfc49f!important;
+ border-radius:13px!important
+}
+.insurance-choice-btn[aria-pressed="true"]{
+ background:linear-gradient(135deg,#46572b,#687543)!important;color:#fff!important;border-color:#394b24!important
+}
+.miniCalc{
+ padding:15px 17px!important;border-radius:16px!important;
+ background:linear-gradient(120deg,#f4edda,#eee3c9)!important;
+ border:1px solid #ddc99f!important;color:#51472f!important;
+ box-shadow:inset 0 1px #ffffffb8!important;line-height:1.7!important
+}
+.total{padding:15px 18px!important;border-radius:17px!important;font-weight:850!important;box-shadow:0 5px 13px #27361712!important}
+.total-green{
+ background:linear-gradient(100deg,#e0e7c9,#c5d19c)!important;
+ color:#2c421d!important;border:1px solid #a9b77b!important
+}
+.total-red{
+ background:linear-gradient(100deg,#f2dfc6,#e7bd8e)!important;
+ color:#704016!important;border:1px solid #d6a36a!important
+}
+.total-blue{
+ background:linear-gradient(100deg,#f5edcf,#e8d8a9)!important;
+ color:#4e4725!important;border:1px solid #d6c48d!important
+}
+.line{border-color:#dedbc9!important}
+.deduction-table-wrap{border-radius:15px!important;box-shadow:0 3px 12px #27361712!important}
+.deduction-table{background:#fffdf5!important;color:#3b402d!important}
+.deduction-table thead th{
+ background:linear-gradient(90deg,#273617,#526332)!important;color:#fffdf0!important;padding:13px 10px!important
+}
+.deduction-table th,.deduction-table td{border-color:#e1ddcc!important;padding:11px 9px!important}
+.deduction-table tbody tr:nth-child(even) td{background:#f7f4e8!important}
+.deduction-table .deduction-total-row td{
+ background:#eee6cf!important;color:#4b4a2a!important;border-top:2px solid #c99552!important;font-weight:850!important
+}
+.toolbar,.copyRow{background:#f0eddc!important;border:1px solid #d8d1b6!important;border-radius:14px!important}
+.calTitle{color:#4c5a2c!important;font-weight:850!important}
+.weekdays{color:#596638!important;font-weight:800!important}
+.calGrid{background:#fffdf5!important;border-radius:14px!important;overflow:hidden}
+.calGrid>div,.day,.calendar-day{border-color:#e0ddce!important}
+.badge{border-radius:8px!important;font-weight:800!important}
+.bP{background:#e8d3a9!important;color:#68451e!important}
+.bA{background:#e5c18e!important;color:#69421c!important}
+.bN{background:#dce2c5!important;color:#354522!important}
+.bAD{background:#f2e8c9!important;color:#66552b!important}
+.bR{background:#d9e2bd!important;color:#34491f!important}
+.footer{color:#697052!important}
+a{color:#99551f!important}
+@media(max-width:650px){
+ .page{padding:10px!important}
+ .topbar{padding:20px!important;border-radius:21px!important;gap:12px!important;align-items:stretch!important;flex-direction:column!important}
+ .topbar>div:last-child{display:grid!important;grid-template-columns:1fr 1fr!important}
+ .topbar .printBtn{min-height:54px!important;padding:10px!important;font-size:14px!important}
+ .panel,.card,.slipBlock,.insurance-choice{padding:17px!important;border-radius:20px!important}
+ .panel{margin:14px 0!important}.field{margin-bottom:12px!important}
+ input,select,textarea{min-height:54px!important;font-size:17px!important}
+ .total{font-size:16px!important}
+}
+@media print{
+ html,body{background:#fff!important}
+ .topbar{background:#46572b!important;box-shadow:none!important}
+ .panel,.card,.slipBlock{box-shadow:none!important;break-inside:avoid}
+}
 </style>
 
+<style id="bold-forest-amber-background">
+html,body{
+  background:
+    radial-gradient(ellipse at 8% 5%,#89934f 0%,transparent 34%),
+    radial-gradient(ellipse at 94% 22%,#c8782d 0%,transparent 30%),
+    linear-gradient(135deg,#263716 0%,#46572b 48%,#8a5a27 100%)!important;
+  background-attachment:fixed!important;
+  color:#29351f!important;
+}
+body{background-color:#35451f!important}
+.page{position:relative}
+.topbar{
+  background:linear-gradient(115deg,#1e2c12 0%,#46572b 48%,#a85d20 100%)!important;
+  border:1px solid #d39a51!important;
+  box-shadow:0 16px 34px #17220f70, inset 0 1px #ffffff30!important;
+}
+.topbar:after{
+  border-color:#fff7d65c!important;
+  box-shadow:0 0 0 24px #fff7d615,0 0 0 50px #fff7d60b!important;
+}
+.topbar .printBtn{
+  background:linear-gradient(135deg,#fff7df,#e9c98f)!important;
+  border-color:#d8a65e!important;color:#29351f!important;
+}
+.panel,.card,.slipBlock,.insurance-choice{
+  background:linear-gradient(145deg,#fffef6 0%,#f5edda 100%)!important;
+  border:1px solid #d8c59b!important;
+  box-shadow:0 12px 30px #17220f45,0 2px 5px #17220f20!important;
+}
+h2,.slipHead{color:#3f5125!important}
+input,select,textarea{
+  background:#fffef8!important;border-color:#b9b78f!important;
+}
+button,.navBtn,.shiftBtn,#copyBtn,#clearMonthBtn{
+  background:linear-gradient(135deg,#394b20 0%,#69783c 100%)!important;
+  border-color:#263716!important;
+  box-shadow:0 5px 13px #17220f42!important;
+}
+button:hover,.navBtn:hover,.shiftBtn:hover{filter:brightness(1.12)!important}
+.shiftBtn.active,.active{
+  background:linear-gradient(135deg,#e2a04e,#f0c47c)!important;
+  color:#30220f!important;border-color:#a85d20!important;
+}
+.miniCalc{
+  background:linear-gradient(120deg,#f4e5c4,#edcf9c)!important;
+  border-color:#d7a55d!important;color:#4c371d!important;
+}
+.total-green{
+  background:linear-gradient(100deg,#dbe7b9,#b5c77c)!important;
+  color:#2b421a!important;border-color:#8ca34e!important;
+}
+.total-red{
+  background:linear-gradient(100deg,#f4d5ad,#e7a96c)!important;
+  color:#713d18!important;border-color:#ce8743!important;
+}
+.total-blue{
+  background:linear-gradient(100deg,#eee5bd,#ddcb8c)!important;
+  color:#4c431c!important;border-color:#c5a95d!important;
+}
+.deduction-table thead th{
+  background:linear-gradient(90deg,#263716,#586a31)!important;color:#fff9e8!important;
+}
+.deduction-table .deduction-total-row td{
+  background:#eee2bd!important;color:#4b4a22!important;border-top:2px solid #c77d35!important;
+}
+.toolbar,.copyRow{
+  background:#ece8d1!important;border-color:#c8bd91!important;
+}
+a{color:#9a4e16!important}
+@media(max-width:650px){
+  html,body{background-attachment:scroll!important}
+  .topbar{background:linear-gradient(120deg,#1e2c12,#53672f 58%,#a85d20)!important}
+}
+@media print{
+  html,body{background:#fff!important}
+  .topbar{background:#46572b!important}
+}
+</style>
 </head>
 <body>
-
-  <div id="maintenanceScreen" role="alert" aria-live="polite">
-    <div class="maintenance-card">
-      <div class="maintenance-icon" aria-hidden="true">🛠️</div>
-      <h1>Η εφαρμογή βρίσκεται υπό αναβάθμιση</h1>
-      <p>Εργαζόμαστε για τη βελτίωση της εφαρμογής.<br>Παρακαλούμε δοκιμάστε ξανά σύντομα.</p>
-      <div class="maintenance-status"><span class="maintenance-dot"></span> Υπό αναβάθμιση</div>
-    </div>
-  </div>
-  <script>document.body.classList.add('maintenance-active');</script>
-
   <div class="page">
     <header class="topbar">
       <div class="brand">
