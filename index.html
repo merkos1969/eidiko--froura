@@ -221,6 +221,34 @@ a{color:#99551f!important}
 }
 </style>
 
+
+<style id="calendar-derived-five-days">
+#fiveDaysCount {
+  background: #fffaf0 !important;
+  color: #263a29 !important;
+  font-weight: 800 !important;
+  cursor: text;
+  border: 2px solid #b58a4b !important;
+}
+</style>
+
+<style id="night-count-source-toggle-theme">
+.night-source-toggle{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.night-source-btn{
+  flex:1 1 130px;min-height:42px;padding:9px 12px;
+  border:1.5px solid #b8b99a!important;border-radius:12px!important;
+  background:#fffdf4!important;color:#34452b!important;
+  -webkit-text-fill-color:#34452b!important;font-size:14px!important;
+  font-weight:800!important;box-shadow:0 3px 8px rgba(39,49,29,.10)!important;
+}
+.night-source-btn[aria-pressed="true"]{
+  background:linear-gradient(135deg,#344b25,#71844a)!important;
+  border-color:#344b25!important;color:#fffdf5!important;
+  -webkit-text-fill-color:#fffdf5!important;
+}
+.night-source-info{display:block;margin-top:7px;color:#62684c!important;font-size:12px;line-height:1.4;opacity:1!important}
+</style>
+
 </head>
 <body>
   <div class="page">
@@ -341,8 +369,8 @@ a{color:#99551f!important}
 
         <div class="grid2">
           <div class="field">
-            <label>Πενθήμερα / μήνα</label>
-            <input id="fiveDaysCount" type="number" step="1" value="0">
+            <label>Πενθήμερα / μήνα (χειροκίνητα ή από το ημερολόγιο)</label>
+            <input id="fiveDaysCount" type="number" min="0" step="1" value="0" title="Μπορείς να τα καταχωρίσεις χειροκίνητα ή να ενημερωθούν από το ημερολόγιο">
           </div>
           <div class="field">
             <label>Τιμή πενθημέρου (€)</label>
@@ -359,7 +387,13 @@ a{color:#99551f!important}
         <div class="grid2">
           <div class="field">
             <label>Νυχτερινά / μήνα</label>
-            <input id="nightCount" type="number" step="1" value="0">
+            <input id="nightCount" type="number" min="0" step="1" value="0"
+                   title="Χειροκίνητη καταχώριση ή αυτόματη ενημέρωση από το ημερολόγιο">
+            <div class="night-source-toggle" role="group" aria-label="Πηγή νυχτερινών">
+              <button type="button" id="nightManualMode" class="night-source-btn" aria-pressed="false">✍ Χειροκίνητα</button>
+              <button type="button" id="nightCalendarMode" class="night-source-btn" aria-pressed="true">📅 Από ημερολόγιο</button>
+            </div>
+            <small id="nightSourceInfo" class="night-source-info">Ο αριθμός ενημερώνεται από τις νυχτερινές βάρδιες του ημερολογίου.</small>
           </div>
           <div class="field">
             <label>Τιμή νύχτας (€)</label>
@@ -580,6 +614,7 @@ window.PAY_TABLE = {"ranges":[{"step":"1 (ΦΡΟΥΡΟΣ)","from":0.0,"to":3.0,"
   let selectedShift = 'P';
   let calYear, calMonth;
   let shifts = {}; // ISO -> P/A/N/AD/R/PN
+  let nightCountSource = 'calendar'; // 'manual' or 'calendar' 
 
   function todayISO(){
     const d = new Date();
@@ -745,13 +780,10 @@ window.PAY_TABLE = {"ranges":[{"step":"1 (ΦΡΟΥΡΟΣ)","from":0.0,"to":3.0,"
 
     const border = $('borderYes').value === 'yes' ? 130 : 0;
 
-    // Τα πενθήμερα προκύπτουν αποκλειστικά από τις πραγματικές βάρδιες
-    // του ημερολογίου. Χωρίς καταχωρισμένη υπηρεσία, η τιμή είναι μηδέν.
-    const fiveCount = Math.max(0, Number($('sumFivedays').textContent || 0));
+    // Τα πενθήμερα μπορούν να καταχωρίζονται χειροκίνητα.
+    // Οι αλλαγές στο ημερολόγιο ενημερώνουν επίσης το ίδιο πεδίο αυτόματα.
+    const fiveCount = Math.max(0, Number($('fiveDaysCount').value || 0));
     const fiveRate = Number($('fiveDaysRate').value || 46);
-    if (Number($('fiveDaysCount').value || 0) !== fiveCount) {
-      $('fiveDaysCount').value = String(fiveCount);
-    }
     const nightCount = Number($('nightCount').value || 0);
     const nightRate = Number($('nightRate').value || 26.5);
 
@@ -903,6 +935,31 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
     });
   }
 
+  function updateNightSourceUI(){
+    const manualBtn = $('nightManualMode');
+    const calendarBtn = $('nightCalendarMode');
+    const info = $('nightSourceInfo');
+    if (manualBtn) manualBtn.setAttribute('aria-pressed', nightCountSource === 'manual' ? 'true' : 'false');
+    if (calendarBtn) calendarBtn.setAttribute('aria-pressed', nightCountSource === 'calendar' ? 'true' : 'false');
+    if (info) info.textContent = nightCountSource === 'manual'
+      ? 'Χειροκίνητη καταχώριση. Πληκτρολόγησε τον αριθμό νυχτερινών για τον μήνα.'
+      : 'Αυτόματη ενημέρωση από τις νυχτερινές βάρδιες (ΝΥ ή ΠΡ+ΝΥ) του ημερολογίου.';
+  }
+
+  function useManualNightCount(){
+    nightCountSource = 'manual';
+    updateNightSourceUI();
+    saveState();
+  }
+
+  function useCalendarNightCount(){
+    nightCountSource = 'calendar';
+    updateCountsFromCalendar();
+    updateNightSourceUI();
+    compute();
+    saveState();
+  }
+
   function renderCalendar(){
     const title = new Date(calYear, calMonth - 1, 1).toLocaleString('el-GR', {month:'long', year:'numeric'});
     $('calTitle').textContent = title.charAt(0).toUpperCase() + title.slice(1);
@@ -971,7 +1028,6 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
     cell.addEventListener('click', function(){
       applyShift(key);
       renderCalendar();
-      $('nightCount').value = $('sumNights').textContent;
       $('fiveDaysCount').value = $('sumFivedays').textContent;
       compute();
     });
@@ -1010,31 +1066,34 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
       if (val === 'N' || val === 'PN') nights += 1;
     }
 
-    // Count only actual worked five-day periods.
-    // A period runs from Friday night through Sunday night and is counted
-    // once when at least one qualifying duty is entered in that Fri-Sun span.
-    let fiveDayCount = 0;
+    // Count only actual five-day periods entered in the calendar.
+    // A period is identified by its Saturday date. Count it once if a
+    // qualifying shift exists on Friday night, Saturday, or Sunday.
+    // This also includes periods crossing a month boundary (e.g. Sunday 1).
+    const fiveDayPeriods = new Set();
     for (let d = 1; d <= dim; d++){
       const date = new Date(calYear, calMonth - 1, d);
-      if (date.getDay() !== 6) continue; // Saturday anchors the period
+      const dow = date.getDay();
+      const val = shifts[iso(calYear, calMonth, d)] || '';
+      let anchor = null;
 
-      const fri = iso(calYear, calMonth, d - 1);
-      const sat = iso(calYear, calMonth, d);
-      const sun = iso(calYear, calMonth, d + 1);
-      const friShift = shifts[fri] || '';
-      const satShift = shifts[sat] || '';
-      const sunShift = shifts[sun] || '';
+      if (dow === 5 && (val === 'N' || val === 'PN')) {
+        anchor = new Date(calYear, calMonth - 1, d + 1); // Friday night -> Saturday
+      } else if (dow === 6 && ['P','A','N','PN'].includes(val)) {
+        anchor = new Date(calYear, calMonth - 1, d); // Saturday duty
+      } else if (dow === 0 && ['P','A','N','PN'].includes(val)) {
+        anchor = new Date(calYear, calMonth - 1, d - 1); // Sunday duty -> Saturday
+      }
 
-      const fridayNight = friShift === 'N' || friShift === 'PN';
-      const saturdayDuty = ['P','A','N','PN'].includes(satShift);
-      const sundayDuty = ['P','A','N','PN'].includes(sunShift);
-
-      if (fridayNight || saturdayDuty || sundayDuty) fiveDayCount++;
+      if (anchor) {
+        fiveDayPeriods.add(iso(anchor.getFullYear(), anchor.getMonth() + 1, anchor.getDate()));
+      }
     }
+    const fiveDayCount = fiveDayPeriods.size;
 
     $('sumNights').textContent = String(nights);
     $('sumFivedays').textContent = String(fiveDayCount);
-    $('nightCount').value = String(nights);
+    if (nightCountSource === 'calendar') $('nightCount').value = String(nights);
     $('fiveDaysCount').value = String(fiveDayCount);
   }
 
@@ -1053,7 +1112,7 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
 
     // Rebuild counts and persist the cleared calendar immediately.
     updateCountsFromCalendar();
-    $('nightCount').value = '0';
+    if (nightCountSource === 'calendar') $('nightCount').value = '0';
     $('fiveDaysCount').value = '0';
     renderCalendar();
     compute();
@@ -1086,8 +1145,6 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
       }
     }
     renderCalendar();
-    $('nightCount').value = $('sumNights').textContent;
-    $('fiveDaysCount').value = $('sumFivedays').textContent;
     compute();
   }
 
@@ -1106,6 +1163,7 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
         fiveDaysCount: $('fiveDaysCount').value,
         fiveDaysRate: $('fiveDaysRate').value,
         nightCount: $('nightCount').value,
+        nightCountSource,
         nightRate: $('nightRate').value,
         fiveYearsOn: $('fiveYearsOn').value,
         fiveYearsAmount: $('fiveYearsAmount').value,
@@ -1137,6 +1195,7 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
       if (s.fiveDaysCount != null) $('fiveDaysCount').value = s.fiveDaysCount;
       if (s.fiveDaysRate != null) $('fiveDaysRate').value = s.fiveDaysRate;
       if (s.nightCount != null) $('nightCount').value = s.nightCount;
+      nightCountSource = s.nightCountSource === 'manual' ? 'manual' : 'calendar';
       if (s.nightRate != null) $('nightRate').value = s.nightRate;
       if (s.fiveYearsOn != null) $('fiveYearsOn').value = s.fiveYearsOn;
       if (s.fiveYearsAmount != null) $('fiveYearsAmount').value = s.fiveYearsAmount;
@@ -1176,17 +1235,26 @@ if ($('slipNet')) $('slipNet').textContent = fmt((regular - regularDeds) + extra
     });
     $('copyBtn').addEventListener('click', copyCycle);
     $('clearMonthBtn').addEventListener('click', clearCurrentMonth);
+
+    $('nightManualMode')?.addEventListener('click', useManualNightCount);
+    $('nightCalendarMode')?.addEventListener('click', useCalendarNightCount);
+    $('nightCount')?.addEventListener('input', function(event){
+      if (event.isTrusted) useManualNightCount();
+    });
+    $('nightCount')?.addEventListener('change', function(event){
+      if (event.isTrusted) useManualNightCount();
+    });
+
     const resetBtn = $('resetStorageBtn');
     if (resetBtn){ resetBtn.addEventListener('click', function(){ try{ localStorage.removeItem(LS); }catch(e){} location.reload(); }); }
 
     document.querySelectorAll('input,select').forEach(el => {
-      el.addEventListener('input', compute);
-      el.addEventListener('change', compute);
+      el.addEventListener('input', function(){ compute(); saveState(); });
+      el.addEventListener('change', function(){ compute(); saveState(); });
     });
 
     renderCalendar();
-    $('nightCount').value = $('sumNights').textContent;
-    $('fiveDaysCount').value = $('sumFivedays').textContent;
+    updateNightSourceUI();
     compute();
   }
 
